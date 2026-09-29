@@ -15,8 +15,10 @@ import os
 
 # Configure test environment before the app reads settings. These take
 # priority over .env (pydantic-settings reads real env vars first).
-os.environ.setdefault("ENVIRONMENT", "testing")
-os.environ.setdefault("AI_PROVIDER", "mock")
+os.environ["ENVIRONMENT"] = "testing"
+os.environ["AI_PROVIDER"] = "mock"
+os.environ["SMTP_HOST"] = ""
+os.environ["EXPOSE_RESET_TOKENS"] = "false"
 
 from collections.abc import Generator  # noqa: E402
 
@@ -51,7 +53,11 @@ def test_engine():
     admin.dispose()
 
     eng = create_engine(TEST_DATABASE_URL, pool_pre_ping=True, future=True)
-    Base.metadata.create_all(bind=eng)
+    from alembic.config import Config
+    from alembic import command
+    config = Config("alembic.ini")
+    config.attributes["database_url"] = TEST_DATABASE_URL
+    command.upgrade(config, "head")
     yield eng
     eng.dispose()
 
@@ -108,6 +114,14 @@ def _register(client, email="newowner@nashaa.sa", password="Password123!",
 def register_and_login(client, **kwargs):
     """Register a user and return (response_json, token)."""
     email = kwargs.pop("email", "newowner@nashaa.sa")
+    if kwargs.get("role") == "admin":
+        from app.services.auth import create_user, create_session
+        from app.models.enums import Role
+        from app.database import get_db
+        db = next(app.dependency_overrides[get_db]())
+        user = create_user(db, email=email, password=kwargs.get("password", "Password123!"), role=Role.ADMIN, display_name=kwargs.get("display_name", "Admin"))
+        _, token = create_session(db, user)
+        return {"user": {"id": str(user.id)}}, token
     res = _register(client, email=email, **kwargs)
     assert res.status_code == 201, res.text
     data = res.json()

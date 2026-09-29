@@ -48,12 +48,24 @@ export function ideaToForm(idea: BusinessIdea): IdeaFormValues {
 interface Props {
   values: IdeaFormValues;
   errors: Record<string, string>;
-  onChange: <K extends keyof IdeaFormValues>(key: K, value: IdeaFormValues[K]) => void;
+  onChange: <K extends keyof IdeaFormValues>(
+    key: K,
+    value: IdeaFormValues[K],
+  ) => void;
 }
 
 export function IdeaForm({ values, errors, onChange }: Props) {
   return (
     <div className="space-y-5">
+      <div className="border-b border-navy/10 pb-4">
+        <p className="eyebrow text-brand-700">01 / The foundation</p>
+        <h2 className="mt-2 text-lg font-semibold">
+          What do you have in mind?
+        </h2>
+        <p className="mt-1 text-sm text-muted-light">
+          Start with the problem and how you want to solve it.
+        </p>
+      </div>
       <Input
         label="Idea name"
         name="name"
@@ -79,6 +91,15 @@ export function IdeaForm({ values, errors, onChange }: Props) {
         error={errors.solution}
         onChange={(e) => onChange("solution", e.target.value)}
       />
+      <div className="border-b border-navy/10 pb-4 pt-4">
+        <p className="eyebrow text-brand-700">02 / The context</p>
+        <h2 className="mt-2 text-lg font-semibold">
+          Put your idea in perspective.
+        </h2>
+        <p className="mt-1 text-sm text-muted-light">
+          These details help make your assessment more useful.
+        </p>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
           label="Industry"
@@ -91,7 +112,9 @@ export function IdeaForm({ values, errors, onChange }: Props) {
           label="Business stage"
           name="business_stage"
           value={values.business_stage}
-          onChange={(e) => onChange("business_stage", e.target.value as BusinessStage)}
+          onChange={(e) =>
+            onChange("business_stage", e.target.value as BusinessStage)
+          }
         >
           {(Object.keys(STAGE_LABELS) as BusinessStage[]).map((s) => (
             <option key={s} value={s}>
@@ -132,11 +155,20 @@ export function IdeaForm({ values, errors, onChange }: Props) {
         error={errors.current_challenges}
         onChange={(e) => onChange("current_challenges", e.target.value)}
       />
+      <div className="border-b border-navy/10 pb-4 pt-4">
+        <p className="eyebrow text-brand-700">03 / Your choice</p>
+        <h2 className="mt-2 text-lg font-semibold">Choose who can see it.</h2>
+        <p className="mt-1 text-sm text-muted-light">
+          Keep it private, or share a limited summary with registered users.
+        </p>
+      </div>
       <Select
         label="Visibility"
         name="visibility"
         value={values.visibility}
-        onChange={(e) => onChange("visibility", e.target.value as IdeaVisibility)}
+        onChange={(e) =>
+          onChange("visibility", e.target.value as IdeaVisibility)
+        }
       >
         {(Object.keys(VISIBILITY_LABELS) as IdeaVisibility[]).map((v) => (
           <option key={v} value={v}>

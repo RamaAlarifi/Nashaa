@@ -152,12 +152,14 @@ def generate_assessment(db: Session, idea_id: uuid.UUID, user: User) -> Assessme
 
     # Call the AI provider outside the lock so the idea is not blocked during
     # the (possibly slow) generation.
-    provider = get_assessment_provider()
     try:
+        provider = get_assessment_provider()
         result = provider.generate(ai_input)
-    except AIServiceError as exc:
+        from app.ai.base import AssessmentResult
+        result = AssessmentResult.from_mapping(result.model_dump())
+    except Exception as exc:
         assessment.generation_status = AssessmentStatus.FAILED
-        assessment.error_message = str(exc) or "Assessment generation failed."
+        assessment.error_message = "Assessment generation failed. Please try again. Your last successful assessment is preserved."
         db.commit()
         db.refresh(assessment)
         return assessment

@@ -83,7 +83,7 @@ def test_edit_assessment_related_field_increases_revision(client):
     assert res.json()["revision_number"] == 2
 
 
-def test_edit_non_assessment_field_keeps_revision(client):
+def test_edit_name_increases_revision(client):
     _, token = register_and_login(client, email="rev2@nashaa.sa", display_name="REV2")
     idea_id = _create(client, token).json()["id"]
 
@@ -94,7 +94,7 @@ def test_edit_non_assessment_field_keeps_revision(client):
     )
     assert res.status_code == 200
     assert res.json()["name"] == "GreenBox Renamed"
-    assert res.json()["revision_number"] == 1  # unchanged
+    assert res.json()["revision_number"] == 2  # name is included in the assessment input
 
 
 def test_edit_visibility_does_not_increase_revision(client):

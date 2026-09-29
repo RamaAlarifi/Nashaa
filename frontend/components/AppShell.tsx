@@ -1,35 +1,67 @@
-"use client";
+﻿"use client";
 
-import { usePathname } from "next/navigation";
-
-import { NavBar } from "@/components/NavBar";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { NavBar } from "./NavBar";
+import { Spinner } from "./States";
 import { useAuth } from "@/lib/auth-context";
 
-// Pages that should NOT show the navbar (auth flows).
-const BARE_PATHS = new Set(["/login", "/register", "/forgot-password", "/reset-password"]);
+const BARE_PATHS = new Set([
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+]);
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { loading } = useAuth();
+  const router = useRouter();
+  const { loading, user } = useAuth();
   const isBare = BARE_PATHS.has(pathname);
-
-  if (isBare) {
-    return <main className="min-h-screen">{children}</main>;
-  }
-
-  return (
-    <div className="flex min-h-screen flex-col">
-      <NavBar />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
-        {loading ? (
-          <div className="flex items-center justify-center py-16 text-gray-400">Loading…</div>
-        ) : (
-          children
-        )}
+  useEffect(() => {
+    if (!isBare && !loading && !user) router.replace("/login");
+  }, [isBare, loading, user, router]);
+  if (isBare) return <main id="main-content">{children}</main>;
+  if (loading || !user)
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <Spinner label="Opening your workspace…" />
       </main>
-      <footer className="border-t border-gray-200 bg-white py-4 text-center text-xs text-gray-500">
-        Nashaa — Sprint 1 prototype. Data shown is fictional for demonstration.
-      </footer>
+    );
+  return (
+    <div className="workspace-shell">
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
+      <NavBar />
+      <div className="flex min-w-0 flex-col">
+        <div className="workspace-topbar">
+          <span>
+            Workspace <span className="mx-3 text-navy/25">/</span>{" "}
+            <span className="font-medium text-navy">
+              {pathname.startsWith("/ideas")
+                ? "Business ideas"
+                : pathname === "/profile"
+                  ? "Profile"
+                  : "Overview"}
+            </span>
+          </span>
+          <span className="hidden items-center gap-2 sm:flex">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+            From idea to opportunity
+          </span>
+        </div>
+        <main id="main-content" tabIndex={-1} className="workspace-main">
+          <div key={pathname} className="page-enter">
+            {children}
+          </div>
+        </main>
+        <footer className="mx-6 flex flex-wrap justify-between gap-2 border-t border-navy/10 py-5 text-xs text-muted-light lg:mx-10">
+          <span>Nashaa · Built for what comes next.</span>
+          <span>Demonstration data is fictional.</span>
+        </footer>
+      </div>
     </div>
   );
 }

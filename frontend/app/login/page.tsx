@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "@/components/Button";
+import { AuthLayout } from "@/components/AuthLayout";
 import { Input } from "@/components/Input";
 import { Alert } from "@/components/States";
 import { ApiError, api, setToken } from "@/lib/api";
@@ -36,48 +37,48 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8">
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h1 className="text-xl font-bold text-gray-900">Sign in to Nashaa</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Welcome back. Enter your details to continue.
-        </p>
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
-          {error && <Alert message={error} />}
-          <Input
-            label="Email"
-            type="email"
-            name="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <Input
-            label="Password"
-            type="password"
-            name="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Button type="submit" loading={loading} className="w-full">
-            Sign in
-          </Button>
-        </form>
-        <div className="mt-4 flex items-center justify-between text-sm">
-          <Link href="/forgot-password" className="text-brand-700 hover:underline">
-            Forgot password?
-          </Link>
-          <Link href="/register" className="text-brand-700 hover:underline">
-            Create account
-          </Link>
-        </div>
+    <AuthLayout
+      title="Welcome back."
+      description="Sign in to give your next idea a little momentum."
+    >
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        {error && <Alert message={error} />}
+        <Input
+          label="Email"
+          type="email"
+          name="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Input
+          label="Password"
+          type="password"
+          name="password"
+          autoComplete="current-password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <Button type="submit" loading={loading} className="w-full">
+          Sign in
+        </Button>
+      </form>
+      <div className="mt-4 flex items-center justify-between text-sm">
+        <Link
+          href="/forgot-password"
+          className="font-medium text-brand-700 hover:underline"
+        >
+          Forgot password?
+        </Link>
+        <Link
+          href="/register"
+          className="font-medium text-brand-700 hover:underline"
+        >
+          Create account
+        </Link>
       </div>
-      <p className="mt-4 text-center text-xs text-gray-400">
-        Demo accounts are listed in the project README. All data is fictional.
-      </p>
-    </div>
+    </AuthLayout>
   );
 }

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.enums import Role
 from app.schemas import SafeEmail
@@ -15,6 +15,20 @@ class RegisterIn(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     role: Role = Role.BUSINESS_OWNER
     display_name: str = Field(min_length=1, max_length=120)
+
+    @field_validator("role")
+    @classmethod
+    def public_roles_only(cls, value):
+        if value == Role.ADMIN:
+            raise ValueError("Administrator accounts are provisioned by the operator.")
+        return value
+
+    @field_validator("display_name")
+    @classmethod
+    def valid_name(cls, value):
+        if not value.strip():
+            raise ValueError("Enter a display name.")
+        return value.strip()
 
 
 class LoginIn(BaseModel):

@@ -5,13 +5,14 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.enums import BusinessStage, IdeaVisibility
 from app.schemas import ORM_CONFIG
 
 
 class BusinessIdeaBase(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
     name: str = Field(min_length=1, max_length=200)
     problem: str = ""
     solution: str = ""
@@ -29,6 +30,15 @@ class BusinessIdeaCreate(BusinessIdeaBase):
 
 
 class BusinessIdeaUpdate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_nulls(cls, values):
+        if isinstance(values, dict) and any(v is None for v in values.values()):
+            raise ValueError("Fields cannot be null. Use an empty string to clear optional text.")
+        return values
+
     name: str | None = Field(default=None, min_length=1, max_length=200)
     problem: str | None = None
     solution: str | None = None

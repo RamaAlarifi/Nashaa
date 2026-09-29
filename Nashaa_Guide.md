@@ -1179,3 +1179,578 @@ The project is successful only if it includes:
 Do not add payments, escrow, investment transactions, legal agreements, automatic outreach, native mobile applications, or restricted-data collection.
 
 If time is limited, prioritize complete and secure user journeys over extra features. Outreach drafts and collaboration ratings are the first planned features that may be deferred. Login, permissions, business ideas, AI assessment, challenges, proposals, matching, saved data, testing, and deployment must remain protected priorities.
+
+## 22. Confirmed brand and interface guidance
+
+The second chat archive includes the original Nashaa identity sheets and logo kit. The rules in this section are confirmed brand guidance, not suggestions created for this document.
+
+### Brand name and tagline
+
+- English name: **Nashaa**
+- Arabic name: **نشأة**
+- English tagline: **From Idea to Opportunity**
+- Arabic tagline: **من الفكرة إلى الفرصة**
+
+The logo is bilingual. The main symbol is based on the Arabic letter **ن**. Its bowl represents a business idea or path, the leaf represents an idea beginning to grow, and the gold point represents an opportunity. The three points in the Arabic mark represent the entrepreneur, innovator, and investor.
+
+### Official color palette
+
+| Color | Hex value | Intended use | Approximate layout share |
+|---|---|---|---:|
+| Emerald | `#087F5B` | Main brand color, main icon bowl, primary actions and key graphics | 40% |
+| Deep Navy | `#132A3A` | Brand name, main text, navigation, and dark backgrounds | 25% |
+| Turquoise | `#20BFA9` | Small technology accent, leaf, active details, and icon color on dark backgrounds | 8% |
+| Warm Gold | `#E9B949` | Opportunity point and rare opportunity or investment accent | 2% |
+| Soft Sand | `#F7F5EF` | Default light page background and large quiet surfaces | 20% |
+| White | `#FFFFFF` | Cards, clean surfaces, and reversed text | 5% |
+
+Supporting tagline colors:
+
+- On light backgrounds: `#4E5F6B`
+- On dark backgrounds: `#C8D0D4`
+
+Use these percentages as guidance, not exact measurements. Emerald and navy should dominate. Turquoise is an accent. Gold must be used sparingly and should not become a general warning or button color.
+
+### Typography
+
+- English wordmark: Poppins Medium. The supplied logo files already contain the outlined wordmark.
+- English interface text and tagline: Poppins Regular, with Medium or SemiBold weights for headings and important controls.
+- Arabic wordmark: use the supplied custom logo artwork. Do not recreate it with an ordinary font.
+- Arabic interface text: Alexandria or IBM Plex Sans Arabic.
+- The supplied Arabic tagline uses a temporary outlined font. Use Alexandria or IBM Plex Sans Arabic if the tagline is recreated for production.
+
+### Logo versions
+
+The logo kit contains:
+
+- Primary bilingual horizontal and stacked logos
+- English-only horizontal and stacked logos
+- Arabic-only horizontal and stacked logos
+- Versions with and without the tagline
+- Full-color, reversed, black, and white versions
+- App icons and favicons
+- Transparent SVG and PNG files
+
+Use the bilingual logo as the default unless the screen clearly requires an English-only or Arabic-only version.
+
+On Arabic horizontal versions, the layout reads from right to left and the icon sits on the right.
+
+### Background use
+
+- Use the full-color logo on Soft Sand or white backgrounds.
+- Use the reversed logo on Deep Navy backgrounds.
+- On a Deep Navy background, the icon bowl changes from Emerald to Turquoise for stronger contrast.
+- Use the black or white one-color logo only when color is not available or the background is visually busy.
+
+### Logo clear space and minimum sizes
+
+- Keep empty space equal to half the icon height on every side of the logo.
+- Horizontal logo with tagline: minimum width 240 pixels.
+- Horizontal logo without tagline: minimum width 120 pixels.
+- Stacked logo: minimum width 90 pixels.
+- Standalone icon: minimum size 24 pixels.
+- Use the specially prepared favicon below 24 pixels.
+- Remove the tagline when the logo is displayed below 240 pixels wide.
+
+### App icon and favicon
+
+- The main app icon is a full-bleed Emerald square with the white bowl symbol.
+- The leaf is Turquoise and the opportunity point is Warm Gold.
+- Mobile operating systems may apply their own rounded-corner mask.
+- The favicon uses a heavier stroke and larger leaf so it remains readable at 16 pixels.
+- Use the prepared icon files instead of manually scaling the full logo.
+
+### Logo changes to avoid
+
+Do not:
+
+- Stretch or squash the logo.
+- Rotate or tilt the logo.
+- Recolor it outside the approved palette.
+- Add shadows, gradients, outlines, glows, or other effects.
+- Rearrange the icon and wordmarks.
+- Recreate the custom Arabic wordmark with an ordinary font.
+- Use a tagline version at a size where the tagline is unreadable.
+
+### Suggested interface application
+
+Apply the confirmed brand identity to the web interface as follows:
+
+- Use Soft Sand for the main page background.
+- Use white for forms, cards, tables, and focused work areas.
+- Use Deep Navy for headings, main text, navigation, and dark footer or sidebar areas.
+- Use Emerald for primary buttons, selected navigation, progress indicators, and key success states.
+- Use Turquoise for small technology or AI accents, secondary active states, and supporting graphics.
+- Reserve Warm Gold for rare opportunity or investment highlights.
+- Keep borders and shadows subtle. The brand examples use clean, flat surfaces rather than heavy decoration.
+- Keep layouts spacious and readable. Do not fill every area with green.
+- Preserve clear focus indicators and sufficient color contrast. Do not rely on color alone to communicate status.
+
+This interface application is a direct interpretation of the identity sheet. Exact component shapes, spacing units, border radius, table style, and complete light or dark themes were not specified in the supplied materials and must be defined consistently during implementation.
+
+### Brand assets included with the reviewed material
+
+The original archive includes:
+
+- `brand-sheet-1-logos.png`
+- `brand-sheet-2-identity.png`
+- `nashaa-logo-kit.zip`
+- Primary horizontal, stacked, and icon PDF files
+- English, Arabic, bilingual, no-tagline, black, white, reversed, and color logo exports
+- App icons and favicons from 16 to 1024 pixels
+
+Use the supplied SVG files for the website whenever possible because they remain sharp at different sizes. Use prepared PNG files for platforms that do not support SVG.
+
+## 23. Prototype and optional feature findings from the chat images
+
+### Prototype status
+
+The chat contains a Lovable project invitation and a statement that a high-fidelity prototype was created. The archive does not contain clear screenshots of the actual prototype screens. The two images sent immediately after the prototype link show logo presentations, not complete application pages.
+
+Therefore:
+
+- Treat the existence of a prototype as reported but not verified.
+- Obtain access to the Lovable project before designing replacement screens.
+- Review its pages, components, navigation, and mobile behavior.
+- Compare the prototype with the official Sprint 1 stories before reusing it.
+- Do not assume that a visually complete prototype has working data, permissions, server behavior, or tests.
+
+### Broader feature ideas shown in chat screenshots
+
+Two chat screenshots proposed a broader product journey:
+
+- Business idea → AI evaluation → market research → customer testing
+- Business problem → AI analysis → solution ideas → innovator matching
+- Both paths → idea improvement → minimum viable product planning → financial model → launch roadmap → growth
+
+The accompanying description also mentioned:
+
+- AI market analysis
+- Real customer validation
+- Financial simulation
+- Minimum viable product planning
+- Innovation challenges
+- Intelligent SME and innovator matching
+
+These ideas were liked by a team member, but the project adviser in the chat said the current scope had already been carefully designed and that additional features should be discussed for later sprints. The approved charter does not require a complete financial simulator, customer-testing system, or automated minimum viable product builder.
+
+Treat these as future or optional ideas only:
+
+- Market research may remain part of the Sprint 1 AI assessment.
+- Customer validation may be supported through customer profiles, survey evidence, or later customer discovery.
+- Solution ideas may help an owner draft a challenge, but publication must remain under owner control.
+- Minimum viable product planning may be represented as suggested next steps, not a separate builder.
+- Indicative costs may appear in the assessment, but a complete financial model is outside the current required scope.
+- Launch roadmap guidance may be included in the assessment.
+- Growth features should not be added until all required three-sprint workflows are stable.
+
+Do not add these optional features to the backlog as required work without team and supervisor approval.
+
+## 24. Design decisions still missing
+
+The archive provides a strong identity system but not a complete interface design system. The implementation team still needs to define and document:
+
+- Page layout and navigation structure
+- Header, sidebar, and mobile navigation behavior
+- Button sizes and states
+- Form styles and validation messages
+- Card and table patterns
+- Spacing scale
+- Border radius and border colors
+- Loading, empty, error, and success states
+- Chart style, if charts are used
+- Exact responsive breakpoints
+- Complete accessibility behavior
+- Whether the application supports only a light theme or also a dark theme
+- Final Arabic interface direction and translation scope, if Arabic is later approved
+
+Make these decisions once, record them in a small shared interface guide, and reuse them across all roles and sprints. Do not redesign the visual language separately for each dashboard.
+
+## 25. Docker setup and deployment instructions
+
+Nashaa should be packaged with Docker so the team, supervisor, testers, and hosting environment can run the same application setup.
+
+These instructions assume the recommended structure:
+
+- Next.js web interface
+- FastAPI server
+- PostgreSQL database
+
+The reviewed archive did not include source code, so the exact folder names, commands, ports, and migration tool must be checked against the real repository before creating the Docker files.
+
+### Docker goals
+
+The Docker setup should provide:
+
+- One command to start the complete application for development or demonstration
+- Separate containers for the web interface, server, and database
+- Repeatable dependency installation
+- Protected environment settings
+- Database storage that survives container restarts
+- Health checks so services start in the correct order
+- A clear database migration process
+- Production images that do not contain development tools or secret files
+
+### Recommended repository structure
+
+Use a simple structure similar to:
+
+```text
+nashaa/
+  frontend/
+    Dockerfile
+    package.json
+    next.config.js
+  backend/
+    Dockerfile
+    requirements.txt or pyproject.toml
+    app/
+    migrations/
+  docker-compose.yml
+  docker-compose.production.yml
+  .env.example
+  .gitignore
+  README.md
+```
+
+If the actual repository uses different folder names, keep its structure and adjust the Docker paths instead of moving files without a reason.
+
+### Required containers
+
+#### Frontend container
+
+The frontend container runs the Next.js interface.
+
+It should:
+
+- Install dependencies from the locked dependency file.
+- Build the production application during image creation.
+- Run as a non-root user.
+- Expose the Next.js application port, normally `3000`.
+- Receive only public browser settings. Never place database passwords or private AI keys in frontend settings.
+- Call the FastAPI server through the configured server address.
+
+Use a multi-stage image:
+
+1. Dependency stage: install exact locked dependencies.
+2. Build stage: create the production Next.js build.
+3. Runtime stage: copy only the files needed to run the build.
+
+If Next.js standalone output is enabled, copy the standalone server, static files, and public assets into the final image. This normally produces a smaller image.
+
+#### Backend container
+
+The backend container runs FastAPI.
+
+It should:
+
+- Install Python packages from a locked dependency file.
+- Copy only the server application and required migration files.
+- Run as a non-root user.
+- Expose the API port, normally `8000`.
+- Read database, AI, email, and security settings from environment variables.
+- Provide a lightweight health endpoint such as `/health`.
+- Use a production application server configuration rather than development auto-reload in production.
+
+The health endpoint should confirm that the server process is responding. A separate readiness check may confirm database access if the deployment platform supports it.
+
+#### Database container
+
+The database container runs PostgreSQL.
+
+It should:
+
+- Use a fixed major PostgreSQL version rather than an unrestricted latest version.
+- Read its database name, user, and password from protected environment variables.
+- Store database files in a named Docker volume.
+- Include a health check using PostgreSQL's readiness command.
+- Be reachable by the backend container through the private Docker network.
+- Not expose its port publicly in production unless there is a specific administrative need.
+
+### Docker Compose setup
+
+Use Docker Compose to define the three services:
+
+- `frontend`
+- `backend`
+- `database`
+
+The frontend depends on a healthy backend. The backend depends on a healthy database.
+
+Use service names for internal communication:
+
+- The backend connects to PostgreSQL using `database` as the host name.
+- Server-side frontend requests may use `http://backend:8000` inside Docker.
+- Browser requests must use the public API address or pass through a reverse proxy. A browser cannot resolve the private Docker service name `backend`.
+
+Keep the frontend and backend on the application network. Keep the database on a private network shared only with the backend when practical.
+
+### Development and production modes
+
+Do not use the same container behavior for development and production.
+
+#### Development mode
+
+Development may use:
+
+- Source folders mounted into containers
+- Next.js development mode
+- FastAPI auto-reload
+- Ports exposed to the developer's computer
+- A local PostgreSQL volume with fictional data
+
+Development should still use environment variables and must not commit real secrets.
+
+#### Production mode
+
+Production must use:
+
+- Prebuilt application images
+- No source-code mount
+- No development auto-reload
+- Minimal runtime dependencies
+- Non-root container users
+- HTTPS through the hosting platform or reverse proxy
+- Protected environment settings supplied by the hosting platform
+- Database backups
+- Limited public ports
+- Clear log and restart behavior
+
+### Environment settings
+
+Create `.env.example` containing variable names and safe example values. Do not put real credentials in it.
+
+Likely server settings include:
+
+```text
+APP_ENV=development
+DATABASE_URL=postgresql://user:password@database:5432/nashaa
+SECRET_KEY=replace_with_a_long_random_value
+AI_PROVIDER=selected_provider
+AI_API_KEY=replace_with_real_key_outside_git
+FRONTEND_URL=http://localhost:3000
+BACKEND_URL=http://localhost:8000
+```
+
+Additional settings may be needed for password-reset email, allowed web origins, logging, AI timeouts, request limits, or file upload limits.
+
+Rules:
+
+- Commit `.env.example`.
+- Do not commit `.env` or any file containing real secrets.
+- Do not copy secret files into Docker images.
+- Keep server-only secrets out of variables exposed to the browser.
+- Use different secrets for development, testing, and production.
+- Rotate any secret accidentally shared in chat, source control, logs, or screenshots.
+
+### Database migrations
+
+Use a migration tool so database changes are repeatable. For FastAPI with a typical Python database layer, Alembic is a suitable choice.
+
+The deployment process should:
+
+1. Start or connect to the database.
+2. Wait until the database is ready.
+3. Run pending migrations once.
+4. Start the normal backend service.
+
+Do not allow every backend copy to run migrations at the same time in a multi-instance production setup. Use a separate migration command, release step, or one-time container.
+
+Keep migration files in source control. Test both migration and rollback behavior using a backup or disposable database before production changes.
+
+### Seed and demonstration data
+
+Create a separate, explicit command for fictional demonstration data.
+
+The seed process may create:
+
+- Test users for all four roles
+- Fictional Saudi business ideas
+- Example assessments
+- Fictional investors
+- Example challenges and proposals
+
+Do not automatically add demonstration data to production. Require a clear command or setting such as `LOAD_DEMO_DATA=true`, and keep it disabled by default.
+
+Never seed real survey participant information, personal chat emails, or live credentials.
+
+### Health checks and startup behavior
+
+Add health checks for:
+
+- PostgreSQL readiness
+- FastAPI server response
+- Next.js application response
+
+Container startup order alone is not enough. A container may be running before its application is ready.
+
+The application should handle temporary database or AI-service failures with clear logs and limited retries. It should not retry forever or lose previously saved work.
+
+### Application files and storage
+
+Use a named volume for PostgreSQL data.
+
+Do not store user uploads only inside an ordinary application container because that data will disappear when the container is replaced. If file uploads are added, use:
+
+- A managed object-storage service, or
+- A deliberately mounted persistent volume for the prototype
+
+Record the chosen storage location, access rules, maximum upload size, permitted file types, and backup process.
+
+### Networking and browser access
+
+For local development, a common arrangement is:
+
+- Web interface: `http://localhost:3000`
+- API: `http://localhost:8000`
+- PostgreSQL: available only to the backend, or temporarily exposed for development tools
+
+Configure allowed browser origins narrowly. Do not allow every origin in production.
+
+For production, place the application behind HTTPS. A reverse proxy or hosting platform may route:
+
+- `/` to Next.js
+- `/api` to FastAPI
+
+Using one public domain can simplify browser security settings and cookie behavior.
+
+### Authentication and cookies in Docker deployment
+
+If the application uses secure login cookies:
+
+- Mark them secure in production so they are sent only through HTTPS.
+- Use HTTP-only cookies when the browser does not need to read the value.
+- Select an appropriate same-site policy.
+- Do not store long-lived login secrets in browser-accessible storage without a strong reason.
+- Confirm that the frontend public address, backend public address, and allowed origins match the deployed domains.
+
+Test login, logout, password reset, and role checks using the real containerized deployment, not only outside Docker.
+
+### Logging
+
+Containers should write logs to standard output and standard error so Docker or the hosting platform can collect them.
+
+Log:
+
+- Service startup and shutdown
+- Migration status
+- Important server errors
+- AI request failures without exposing submitted confidential content
+- Administrative actions through the application audit record
+
+Do not log:
+
+- Passwords
+- Reset links or complete reset tokens
+- Session tokens
+- AI or database keys
+- Full private business records unless required for a controlled debugging session
+
+### Backups and restoration
+
+Containerization does not replace backups.
+
+Before final delivery:
+
+1. Create a PostgreSQL backup from the running database.
+2. Store it outside the database container.
+3. Restore it into a clean test database.
+4. Confirm that users, ideas, assessments, and other required records are present.
+5. Record the backup and restore commands in the project guide.
+
+For production, define backup frequency, retention, access permissions, and the person responsible for checking backups.
+
+### Docker security checklist
+
+- Use specific image versions.
+- Keep base images updated.
+- Use official or trusted base images.
+- Run application processes as non-root users.
+- Use multi-stage builds to reduce image size.
+- Add `.dockerignore` files for source-control metadata, local settings, test output, caches, and dependency folders.
+- Do not copy `.env`, keys, database backups, or personal data into images.
+- Do not expose the production database publicly.
+- Limit container and service permissions.
+- Scan images and dependencies for known vulnerabilities before final delivery.
+- Rebuild images after important security updates.
+
+### Files that must be created
+
+At minimum, the repository should contain:
+
+- `frontend/Dockerfile`
+- `frontend/.dockerignore`
+- `backend/Dockerfile`
+- `backend/.dockerignore`
+- `docker-compose.yml` for local development or demonstrations
+- A production Compose file or hosting configuration when required
+- `.env.example`
+- Database migration files
+- Optional, clearly separated demonstration-data script
+- README instructions for build, start, stop, logs, migrations, tests, backup, and restore
+
+### Commands the README must explain
+
+Use the commands appropriate to the final repository, but explain how to:
+
+- Build all images
+- Start the full application
+- Stop the application without deleting data
+- View service logs
+- Run database migrations
+- Add fictional demonstration data
+- Run frontend and backend tests
+- Open a shell inside a container for debugging
+- Create a database backup
+- Restore a database backup
+- Rebuild after dependency or source changes
+- Remove only disposable development containers and volumes
+
+Clearly warn that deleting the PostgreSQL volume permanently removes the local database.
+
+### Docker work by sprint
+
+#### Sprint 1
+
+- Create frontend, backend, and database containers.
+- Add Docker Compose.
+- Add environment examples and protected-secret handling.
+- Add PostgreSQL persistence.
+- Add migrations and fictional Sprint 1 data.
+- Add health checks.
+- Confirm registration, login, ideas, and AI assessment work through Docker.
+- Document the one-command local setup.
+
+#### Sprint 2
+
+- Update migrations for challenges, verification, proposals, messages, and investor matching.
+- Add Sprint 2 fictional data.
+- Confirm all Sprint 1 and Sprint 2 journeys work after a clean container build.
+- Confirm private Docker networking and browser-to-API routing.
+- Add image and dependency scanning to the repository workflow if available.
+
+#### Sprint 3
+
+- Update migrations for progress, leads, ratings, reports, and administrative records.
+- Finalize production images and deployment settings.
+- Remove development-only behavior from production.
+- Test backup and restoration.
+- Test startup after container and host restart.
+- Run full security and end-to-end tests against the deployed containers.
+- Record final image versions, configuration requirements, limitations, and recovery steps.
+
+### Docker completion checks
+
+Dockerization is complete only when:
+
+- A new team member can follow the README and start the system without undocumented steps.
+- All containers become healthy.
+- The frontend can reach the backend.
+- The backend can reach PostgreSQL.
+- Database information remains after normal container restart or replacement.
+- Migrations work on a clean database and an existing database.
+- Real secrets are absent from source control and built images.
+- Development settings are not used in production.
+- The containerized system passes the same tests as the normal development system.
+- A database backup has been restored successfully.
+- The deployed version uses HTTPS and does not publicly expose PostgreSQL.

@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPkMixin
-from app.models.enums import ContactPreference, ProfileVisibility
+from app.models.enums import ProfileVisibility
 
 
 class Profile(Base, UUIDPkMixin, TimestampMixin):
@@ -28,11 +28,6 @@ class Profile(Base, UUIDPkMixin, TimestampMixin):
     # Flexible role-specific data (e.g. investor preferences, innovator skills).
     role_specific_info: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
 
-    contact_preference: Mapped[ContactPreference] = mapped_column(
-        Enum(ContactPreference, native_enum=False, length=32),
-        nullable=False,
-        default=ContactPreference.CONTACT_REQUEST,
-    )
     profile_visibility: Mapped[ProfileVisibility] = mapped_column(
         Enum(ProfileVisibility, native_enum=False, length=32),
         nullable=False,

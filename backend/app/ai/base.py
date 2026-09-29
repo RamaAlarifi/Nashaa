@@ -65,6 +65,12 @@ class AssessmentResult(BaseModel):
         if missing:
             raise AIResponseError(f"AI response missing required fields: {missing}")
 
+        for key in required:
+            if not isinstance(data[key], str) or not data[key].strip():
+                raise AIResponseError("AI response contains missing or invalid assessment content.")
+        if "sources" in data and not isinstance(data["sources"], str):
+            raise AIResponseError("AI sources must be text.")
+
         def _text(key: str) -> str:
             value = data.get(key, "")
             if value is None:

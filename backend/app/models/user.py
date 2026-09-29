@@ -6,7 +6,7 @@ from sqlalchemy import Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPkMixin
-from app.models.enums import AccountStatus, Role, VerificationStatus
+from app.models.enums import AccountStatus, Role
 
 
 class User(Base, UUIDPkMixin, TimestampMixin):
@@ -23,12 +23,6 @@ class User(Base, UUIDPkMixin, TimestampMixin):
         nullable=False,
         default=AccountStatus.ACTIVE,
     )
-    verification_status: Mapped[VerificationStatus] = mapped_column(
-        Enum(VerificationStatus, native_enum=False, length=32),
-        nullable=False,
-        default=VerificationStatus.UNVERIFIED,
-    )
-
     # Parent-side relationships. Targets are forward-referenced by string so the
     # models can be imported in any order without circular import errors.
     profile: Mapped["Profile"] = relationship(  # type: ignore[name-defined]

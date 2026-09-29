@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "@/components/Button";
+import { AuthLayout } from "@/components/AuthLayout";
 import { Input, Select } from "@/components/Input";
 import { Alert } from "@/components/States";
 import { ApiError, api, setToken } from "@/lib/api";
@@ -30,7 +31,10 @@ export default function RegisterPage() {
   const [topError, setTopError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
+  function update<K extends keyof typeof form>(
+    key: K,
+    value: (typeof form)[K],
+  ) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
@@ -44,7 +48,7 @@ export default function RegisterPage() {
         form.email,
         form.password,
         form.role,
-        form.display_name
+        form.display_name,
       );
       setToken(res.token);
       setUser(res.user, res.profile);
@@ -66,66 +70,66 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8">
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h1 className="text-xl font-bold text-gray-900">Create your Nashaa account</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Choose the role that fits you. You can complete your profile after signing up.
-        </p>
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
-          {topError && <Alert message={topError} />}
-          <Input
-            label="Display name"
-            name="display_name"
-            required
-            value={form.display_name}
-            error={errors.display_name}
-            onChange={(e) => update("display_name", e.target.value)}
-          />
-          <Input
-            label="Email"
-            type="email"
-            name="email"
-            autoComplete="email"
-            required
-            value={form.email}
-            error={errors.email}
-            onChange={(e) => update("email", e.target.value)}
-          />
-          <Input
-            label="Password"
-            type="password"
-            name="password"
-            autoComplete="new-password"
-            required
-            hint="At least 8 characters."
-            value={form.password}
-            error={errors.password}
-            onChange={(e) => update("password", e.target.value)}
-          />
-          <Select
-            label="Account role"
-            name="role"
-            value={form.role}
-            onChange={(e) => update("role", e.target.value as Role)}
-          >
-            {ROLES.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </Select>
-          <Button type="submit" loading={loading} className="w-full">
-            Create account
-          </Button>
-        </form>
-        <p className="mt-4 text-center text-sm">
-          Already have an account?{" "}
-          <Link href="/login" className="text-brand-700 hover:underline">
-            Sign in
-          </Link>
-        </p>
-      </div>
-    </div>
+    <AuthLayout
+      title="Start something good."
+      description="Create your account and choose the role that fits you. Complete your profile whenever you are ready."
+    >
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        {topError && <Alert message={topError} />}
+        <Input
+          label="Display name"
+          name="display_name"
+          required
+          value={form.display_name}
+          error={errors.display_name}
+          onChange={(e) => update("display_name", e.target.value)}
+        />
+        <Input
+          label="Email"
+          type="email"
+          name="email"
+          autoComplete="email"
+          required
+          value={form.email}
+          error={errors.email}
+          onChange={(e) => update("email", e.target.value)}
+        />
+        <Input
+          label="Password"
+          type="password"
+          name="password"
+          autoComplete="new-password"
+          required
+          hint="At least 8 characters."
+          value={form.password}
+          error={errors.password}
+          onChange={(e) => update("password", e.target.value)}
+        />
+        <Select
+          label="Account role"
+          name="role"
+          value={form.role}
+          onChange={(e) => update("role", e.target.value as Role)}
+        >
+          {ROLES.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </Select>
+        <Button type="submit" loading={loading} className="w-full">
+          Create account
+        </Button>
+      </form>
+      <p className="mt-4 text-center text-sm">
+        Already have an account?{" "}
+        <Link
+          href="/login"
+          className="font-medium text-brand-700 hover:underline"
+        >
+          Sign in
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }

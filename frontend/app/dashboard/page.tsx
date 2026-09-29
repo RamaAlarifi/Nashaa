@@ -1,146 +1,192 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
-import { Button } from "@/components/Button";
-import { ErrorState, Spinner } from "@/components/States";
+import { ButtonLink } from "@/components/Button";
+import { Card } from "@/components/Card";
+import { Icon } from "@/components/Icon";
+import { IdeaCard } from "@/components/IdeaCard";
+import { EmptyState, ErrorState, Spinner } from "@/components/States";
 import { ApiError, api } from "@/lib/api";
-import { useAuth } from "@/lib/auth-context";
-import { ROLE_LABELS, STAGE_LABELS, type Dashboard } from "@/lib/types";
-
-const STATUS_BADGE: Record<string, string> = {
-  none: "bg-gray-100 text-gray-600",
-  in_progress: "bg-yellow-100 text-yellow-700",
-  succeeded: "bg-green-100 text-green-700",
-  failed: "bg-red-100 text-red-700",
-};
+import { ROLE_LABELS, type Dashboard } from "@/lib/types";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   async function load() {
     setLoading(true);
     setError(null);
     try {
       setDashboard(await api.dashboard());
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not load the dashboard.");
+      setError(
+        err instanceof ApiError ? err.message : "Could not load the dashboard.",
+      );
     } finally {
       setLoading(false);
     }
   }
-
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   if (loading) return <Spinner label="Loading your dashboard…" />;
   if (error || !dashboard)
-    return <ErrorState message={error ?? "Could not load the dashboard."} onRetry={load} />;
-
+    return (
+      <ErrorState
+        message={error ?? "Could not load the dashboard."}
+        onRetry={load}
+      />
+    );
+  const ideas = dashboard.ideas ?? [];
+  const owner = dashboard.role === "business_owner";
+  const assessed = ideas.filter(
+    (idea) => idea.assessment_status === "succeeded",
+  ).length;
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome, {dashboard.display_name}</h1>
-          <p className="text-sm text-gray-500">
-            Role: {ROLE_LABELS[dashboard.role]}
+    <div className="space-y-8">
+      <div className="page-heading">
+        <div className="min-w-0">
+          <p className="eyebrow text-brand-700">
+            {ROLE_LABELS[dashboard.role]} workspace
+          </p>
+          <h1 className="mt-2 break-words text-3xl font-semibold tracking-tight lg:text-4xl">
+            Welcome back, {dashboard.display_name}.
+          </h1>
+          <p className="mt-3 text-sm text-muted-light">
+            A little clarity today. A stronger business tomorrow.
           </p>
         </div>
-        {dashboard.role === "business_owner" && (
-          <Link href="/ideas/new">
-            <Button>New business idea</Button>
-          </Link>
+        {owner && (
+          <ButtonLink href="/ideas/new">
+            <Icon name="plus" className="h-4 w-4" />
+            New business idea
+          </ButtonLink>
         )}
       </div>
-
-      {/* Business owner: ideas + assessment status */}
-      {dashboard.role === "business_owner" && (
-        <section>
-          <h2 className="mb-3 text-lg font-semibold text-gray-800">Your business ideas</h2>
-          {dashboard.ideas && dashboard.ideas.length > 0 ? (
-            <ul className="space-y-3">
-              {dashboard.ideas.map((idea) => {
-                const badge = STATUS_BADGE[idea.assessment_status] ?? STATUS_BADGE.none;
-                const statusText =
-                  idea.assessment_status === "none"
-                    ? "No assessment"
-                    : idea.assessment_status === "in_progress"
-                    ? "Generating…"
-                    : idea.assessment_status === "succeeded"
-                    ? "Assessment ready"
-                    : "Last attempt failed";
-                return (
-                  <li
-                    key={idea.id}
-                    className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div>
-                      <Link
-                        href={`/ideas/${idea.id}`}
-                        className="font-medium text-brand-700 hover:underline"
-                      >
-                        {idea.name}
-                      </Link>
-                      <p className="text-sm text-gray-500">
-                        {idea.industry || "No industry"} ·{" "}
-                        {STAGE_LABELS[idea.business_stage as keyof typeof STAGE_LABELS] ??
-                          idea.business_stage}{" "}
-                        · Revision {idea.revision_number}
-                      </p>
-                    </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${badge}`}>
-                      {statusText}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-              <p className="font-medium text-gray-700">No business ideas yet</p>
-              <p className="mt-1 text-sm text-gray-500">
-                Create your first idea and get an AI-assessed business analysis.
+      {owner && (
+        <>
+          <section className="dashboard-hero">
+            <div className="relative z-10 max-w-lg">
+              <p className="eyebrow text-turquoise-400">Your next move</p>
+              <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-white sm:text-4xl">
+                Turn a possibility
+                <br />
+                into a plan.
+              </h2>
+              <p className="mt-4 max-w-sm text-sm leading-relaxed text-navy-100">
+                Capture what you have in mind. Explore your market, customers,
+                and next steps with an AI business assessment.
               </p>
-              <Link href="/ideas/new" className="mt-4 inline-block">
-                <Button>Create your first idea</Button>
+              <ButtonLink
+                href={ideas.length ? `/ideas/${ideas[0].id}` : "/ideas/new"}
+                className="mt-6 !bg-white !text-navy hover:!bg-brand-50"
+              >
+                {ideas.length ? "Continue your idea" : "Start your first idea"}
+                <Icon name="arrow" className="h-4 w-4" />
+              </ButtonLink>
+            </div>
+            <div className="orbit-art" aria-hidden="true">
+              <div className="orbit-ring orbit-ring-outer" />
+              <div className="orbit-ring orbit-ring-inner" />
+              <span className="orbit-core">
+                <Icon name="idea" className="h-12 w-12" />
+              </span>
+              <span className="orbit-label orbit-label-top">
+                <Icon name="spark" className="h-4 w-4" />
+                Find clarity
+              </span>
+              <span className="orbit-label orbit-label-bottom">
+                <Icon name="check" className="h-4 w-4" />
+                Build with purpose
+              </span>
+            </div>
+          </section>
+          <section
+            aria-label="Your idea activity"
+            className="grid gap-4 sm:grid-cols-3"
+          >
+            {[
+              {
+                label: "Ideas in your workspace",
+                value: ideas.length,
+                icon: "idea",
+              },
+              {
+                label: "Latest assessments ready",
+                value: assessed,
+                icon: "spark",
+              },
+              {
+                label: "Ideas kept private",
+                value: ideas.filter((idea) => idea.visibility === "private")
+                  .length,
+                icon: "lock",
+              },
+            ].map((stat) => (
+              <Card key={stat.label} className="flex items-center gap-4 p-5">
+                <span className="rounded-xl bg-sand p-3 text-brand-700">
+                  <Icon name={stat.icon as "idea" | "spark" | "lock"} />
+                </span>
+                <div>
+                  <p className="text-2xl font-semibold tabular-nums">
+                    {stat.value.toString().padStart(2, "0")}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-light">{stat.label}</p>
+                </div>
+              </Card>
+            ))}
+          </section>
+          <section>
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight">
+                  Your business ideas
+                </h2>
+                <p className="mt-1 text-sm text-muted-light">
+                  Pick up where you left off.
+                </p>
+              </div>
+              <Link
+                href="/ideas"
+                className="flex shrink-0 items-center gap-2 text-sm font-medium text-brand-700 hover:underline"
+              >
+                View all
+                <Icon name="arrow" className="h-4 w-4" />
               </Link>
             </div>
-          )}
-        </section>
+            {ideas.length ? (
+              <ul className="space-y-3">
+                {ideas.slice(0, 4).map((idea) => (
+                  <li key={idea.id}>
+                    <IdeaCard idea={idea} />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                title="Every business starts with an idea"
+                description="You don't need all the answers. Start with the problem you want to solve."
+                action={
+                  <ButtonLink href="/ideas/new">
+                    Create your first idea
+                    <Icon name="arrow" className="h-4 w-4" />
+                  </ButtonLink>
+                }
+              />
+            )}
+          </section>
+        </>
       )}
-
-      {/* Innovator / investor: placeholder for later sprints */}
-      {(dashboard.role === "innovator" || dashboard.role === "investor") && (
-        <section className="rounded-lg border border-gray-200 bg-white p-6">
-          <h2 className="text-lg font-semibold text-gray-800">Coming up</h2>
-          <p className="mt-2 text-sm text-gray-600">{dashboard.message}</p>
-        </section>
-      )}
-
-      {/* Administrator */}
-      {dashboard.role === "admin" && (
-        <section>
-          <h2 className="mb-3 text-lg font-semibold text-gray-800">Administration</h2>
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {dashboard.admin_actions?.map((action) => (
-              <li
-                key={action}
-                className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700"
-              >
-                {action}
-                <span className="mt-1 block text-xs text-gray-400">
-                  Available in a later sprint
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {!owner && (
+        <Card className="p-8">
+          <Icon name="user" className="mb-5 h-8 w-8 text-brand-700" />
+          <h2 className="text-2xl font-semibold">Your account workspace</h2>
+          <p className="mt-3 text-sm text-muted-light">{dashboard.message}</p>
+          <ButtonLink href="/profile" variant="secondary" className="mt-6">
+            Edit your profile <Icon name="arrow" className="h-4 w-4" />
+          </ButtonLink>
+        </Card>
       )}
     </div>
   );

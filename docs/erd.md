@@ -1,91 +1,21 @@
-# Entity Relationship Diagram (Sprint 1)
+# Sprint 1 data model
 
-Generated from the SQLAlchemy models in `backend/app/models/`. This is the
-authoritative schema; the code is the source of truth.
-
-```
-┌──────────────────────────┐       1:1       ┌──────────────────────────┐
-│ users                   │─────────────────▶│ profiles                 │
-│─────────────────────────│                  │─────────────────────────│
-│ id (UUID, PK)           │                  │ id (UUID, PK)           │
-│ email (unique)          │                  │ user_id (FK→users.id)   │
-│ password_hash           │                  │ display_name            │
-│ role (enum)             │                  │ location                │
-│ account_status (enum)   │                  │ short_description        │
-│ verification_status     │                  │ role_specific_info(JSONB)│
-│ created_at, updated_at  │                  │ contact_preference(enum)│
-└────────────┬─────────────┘                  │ profile_visibility(enum)│
-             │                                │ created_at, updated_at  │
-             │ 1:N                            └──────────────────────────┘
-             │
-      ┌──────┴─────────────────────┐
-      ▼                            ▼
-┌──────────────────────────┐   ┌──────────────────────────┐
-│ sessions                │   │ business_ideas            │
-│─────────────────────────│   │─────────────────────────│
-│ id (UUID, PK)           │   │ id (UUID, PK)            │
-│ user_id (FK→users.id)   │   │ owner_id (FK→users.id)   │
-│ token_hash (unique)     │   │ name                     │
-│ expires_at              │   │ problem, solution        │
-│ created_at              │   │ industry                 │
-└──────────────────────────┘   │ business_stage(enum)     │
-                               │ target_location          │
-┌──────────────────────────┐   │ intended_customers       │
-│ password_resets          │   │ budget                   │
-│─────────────────────────│   │ current_challenges       │
-│ id (UUID, PK)           │   │ visibility(enum)         │
-│ user_id (FK→users.id)   │   │ revision_number(int)      │
-│ token_hash (unique)     │   │ created_at, updated_at   │
-│ expires_at              │   └────────────┬─────────────┘
-│ used_at (nullable)      │                │ 1:N
-│ created_at              │                ▼
-└──────────────────────────┘   ┌──────────────────────────┐
-                               │ assessments               │
-                               │─────────────────────────│
-                               │ id (UUID, PK)            │
-                               │ idea_id (FK→business_ideas.id)│
-                               │ seq (IDENTITY, ordering) │
-                               │ idea_revision(int)        │
-                               │ input_snapshot(JSONB)    │
-                               │ market_considerations     │
-                               │ target_customer_analysis │
-                               │ competitor_considerations│
-                               │ indicative_costs         │
-                               │ suggested_next_steps     │
-                               │ assumptions              │
-                               │ sources                  │
-                               │ generation_status(enum)  │
-                               │ error_message(nullable)  │
-                               │ created_at, updated_at   │
-                               └──────────────────────────┘
+```mermaid
+erDiagram
+    users ||--|| profiles : has
+    users ||--o{ sessions : opens
+    users ||--o{ password_resets : requests
+    users ||--o{ business_ideas : owns
+    business_ideas ||--o{ assessments : records
 ```
 
-## Relationships
+- `users`: UUID, unique email, password hash, role, account status, timestamps.
+- `profiles`: user FK, display name, location, description, role-specific JSON, visibility, timestamps.
+- `sessions`: user FK, unique token hash, expiry, creation time.
+- `password_resets`: user FK, unique token hash, expiry, consumption time, creation time.
+- `business_ideas`: owner FK, title, problem, solution, industry, stage, location, customers, budget, current challenges, visibility, revision, timestamps.
+- `assessments`: idea FK, revision/input snapshot, seven assessment sections, status/error, monotonic identity sequence, timestamps.
 
-- `users` 1:1 `profiles` (a profile is created at registration)
-- `users` 1:N `sessions` (opaque token sessions; deleted on logout/expiry)
-- `users` 1:N `password_resets` (single-use, time-limited)
-- `users` 1:N `business_ideas` (owner)
-- `business_ideas` 1:N `assessments` (one row per attempt; `latest_valid` =
-  most recent SUCCEEDED)
+`alembic_version` is migration bookkeeping. All five foreign keys cascade when their parent is deleted. Private idea details and all assessment records are owner-only. Registered visibility returns a reduced summary. New passwords use bcrypt-SHA256; existing bcrypt hashes still verify. Session/reset secrets are stored only as SHA-256 hashes.
 
-## Enums
-
-- `Role`: business_owner, innovator, investor, admin
-- `AccountStatus`: active, suspended, deactivated
-- `VerificationStatus`: unverified, pending, verified, rejected
-- `BusinessStage`: idea, validation, early, operating, scaling
-- `IdeaVisibility`: private, registered
-- `ProfileVisibility`: public, registered, private
-- `ContactPreference`: direct_message, contact_request
-- `AssessmentStatus`: pending, in_progress, succeeded, failed
-
-## Notes
-
-- Enumerations are stored as `VARCHAR` (`native_enum=False`) to keep schema
-  changes simple across sprints.
-- Password hashes use bcrypt (`passlib`); session/reset tokens are stored only
-  as SHA-256 hashes — the plaintext is never persisted.
-- `assessments.seq` is a database `IDENTITY` sequence so attempts order
-  deterministically even within a single transaction (where `now()` is
-  constant).
+Migrations are authoritative for runtime and tests. Enum columns store uppercase member names; APIs expose lowercase values. Each assessment attempt is separate, so failure retains the latest successful record.

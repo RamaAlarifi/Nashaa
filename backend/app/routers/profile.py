@@ -34,6 +34,15 @@ def update_my_profile(
 
     profile = user.profile
     changes = payload.model_dump(exclude_unset=True)
+    allowed = {
+        "business_owner": {"business_name", "industry"},
+        "innovator": {"skills", "experience"},
+        "investor": {"investment_interests", "preferred_stage"},
+        "admin": set(),
+    }[user.role.value]
+    info = changes.get("role_specific_info")
+    if info is not None and any(k not in allowed or not isinstance(v, str) or len(v) > 2000 for k, v in info.items()):
+        raise HTTPException(status_code=422, detail="Use the profile fields available for your account role.")
     for field, value in changes.items():
         setattr(profile, field, value)
     db.commit()

@@ -1,25 +1,114 @@
-# Local development services for Nashaa.
-# Only PostgreSQL is required for Sprint 1. The app runs locally with
-# `uvicorn` (backend) and `npm run dev` (frontend) outside compose.
+# Nashaa local development / demonstration stack (Nashaa_Guide.md §25).
+#
+#   docker compose up            # build + start frontend, backend, database
+#   docker compose up database   # start only PostgreSQL (host-run app mode)
+#
+# Development mode: source is mounted into the backend and frontend containers
+# and both run with auto-reload. A clean production setup lives in
+# docker-compose.production.yml.
 
 services:
-  db:
+  database:
     image: postgres:16-alpine
-    container_name: nashaa-db
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
     environment:
-      POSTGRES_USER: nashaa
-      POSTGRES_PASSWORD: nashaa_dev_password
-      POSTGRES_DB: nashaa
+      POSTGRES_USER: ${POSTGRES_USER:-nashaa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nashaa_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-nashaa}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${DATABASE_PORT:-5432}:5432" # exposed for local dev tools only; not exposed in production
     volumes:
       - nashaa_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nashaa -d nashaa"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nashaa} -d ${POSTGRES_DB:-nashaa}"]
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - dbnet
+
+  backend:
+    image: nashaa-backend
+    build:
+      context: ./backend
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    env_file:
+      - ${APP_ENV_FILE:-.env}
+    environment:
+      # In Docker the backend talks to the database service by name.
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-nashaa}:${POSTGRES_PASSWORD:-nashaa_dev_password}@database:5432/${POSTGRES_DB:-nashaa}
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+    volumes:
+      # Live source for auto-reload; the image's installed deps stay in place.
+      - ./backend/app:/app/app
+      - ./backend/migrations:/app/migrations
+      - ./backend/alembic.ini:/app/alembic.ini:ro
+    # Dev server with reload. The image entrypoint still runs migrations first.
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; exit(0 if u.urlopen('http://localhost:8000/health', timeout=3).status==200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    networks:
+      - dbnet
+      - appnet
+
+  frontend:
+    image: nashaa-frontend
+    build:
+      context: ./frontend
+      target: dev
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    environment:
+      # Server-side: the Next.js dev server proxies /api/* to the backend.
+      # Never put database passwords or private AI keys in frontend settings.
+      BACKEND_URL: http://backend:8000
+      NEXT_PUBLIC_API_BASE: "" # same-origin; the dev server proxies /api/*
+      NODE_ENV: development
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    networks:
+      - appnet
+
+networks:
+  dbnet:
+    driver: bridge
+  appnet:
+    driver: bridge
 
 volumes:
   nashaa_pgdata:

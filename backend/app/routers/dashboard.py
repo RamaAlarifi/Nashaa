@@ -33,7 +33,6 @@ class DashboardOut(BaseModel):
     # Role-specific content. Fields are populated per role (US04).
     ideas: list[IdeaSummaryItem] | None = None
     message: str | None = None
-    admin_actions: list[str] | None = None
 
 
 @router.get("", response_model=DashboardOut)
@@ -76,21 +75,21 @@ def dashboard(user: User = Depends(get_current_user), db: Session = Depends(get_
         return DashboardOut(
             role=user.role,
             display_name=display_name,
-            message="Challenge browsing and proposals become available in Sprint 2.",
+            message="Manage your professional profile, skills, and experience.",
         )
 
     if user.role == Role.INVESTOR:
         return DashboardOut(
             role=user.role,
             display_name=display_name,
-            message="Ranked project discovery becomes available in Sprint 2.",
+            message="Manage your investor profile and investment interests.",
         )
 
     if user.role == Role.ADMIN:
         return DashboardOut(
             role=user.role,
             display_name=display_name,
-            admin_actions=["Review verification requests", "Review reports", "View activity"],
+            message="Manage your administrator account and profile.",
         )
 
     return DashboardOut(role=user.role, display_name=display_name)

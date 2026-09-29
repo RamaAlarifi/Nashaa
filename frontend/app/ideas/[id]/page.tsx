@@ -5,7 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "@/components/Button";
-import { IdeaForm, ideaToForm, type IdeaFormValues } from "@/components/IdeaForm";
+import { Card } from "@/components/Card";
+import {
+  IdeaForm,
+  ideaToForm,
+  type IdeaFormValues,
+} from "@/components/IdeaForm";
 import { Alert, ErrorState, EmptyState, Spinner } from "@/components/States";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -14,6 +19,7 @@ import {
   VISIBILITY_LABELS,
   type AssessmentStatusResponse,
   type BusinessIdea,
+  type BusinessIdeaSummary,
   type IdeaVisibility,
 } from "@/lib/types";
 
@@ -22,7 +28,10 @@ export default function IdeaDetailPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [idea, setIdea] = useState<BusinessIdea | null>(null);
-  const [assessment, setAssessment] = useState<AssessmentStatusResponse | null>(null);
+  const [summary, setSummary] = useState<BusinessIdeaSummary | null>(null);
+  const [assessment, setAssessment] = useState<AssessmentStatusResponse | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +43,7 @@ export default function IdeaDetailPage() {
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [assessError, setAssessError] = useState<string | null>(null);
+  const [assessmentLoading, setAssessmentLoading] = useState(true);
 
   const loadIdea = useCallback(async () => {
     setLoading(true);
@@ -44,13 +54,17 @@ export default function IdeaDetailPage() {
       // 'problem' field and means this idea is not the viewer's.
       if (!("problem" in res)) {
         setIdea(null);
-        setError("This idea is private, or you can only view a limited summary.");
+        setSummary(res);
+        setAssessmentLoading(false);
         return;
       }
+      setSummary(null);
       setIdea(res);
       setValues(ideaToForm(res));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not load the idea.");
+      setError(
+        err instanceof ApiError ? err.message : "Could not load the idea.",
+      );
     } finally {
       setLoading(false);
     }
@@ -59,17 +73,36 @@ export default function IdeaDetailPage() {
   const loadAssessment = useCallback(async () => {
     try {
       setAssessment(await api.getAssessmentStatus(params.id));
+      setAssessError(null);
     } catch (err) {
-      setAssessError(err instanceof ApiError ? err.message : "Could not load assessment status.");
+      setAssessError(
+        err instanceof ApiError
+          ? err.message
+          : "Could not load assessment status.",
+      );
+    } finally {
+      setAssessmentLoading(false);
     }
   }, [params.id]);
 
   useEffect(() => {
     loadIdea();
-    loadAssessment();
-  }, [loadIdea, loadAssessment]);
+  }, [loadIdea]);
 
-  function update<K extends keyof IdeaFormValues>(key: K, value: IdeaFormValues[K]) {
+  useEffect(() => {
+    if (idea) loadAssessment();
+  }, [idea, loadAssessment]);
+
+  useEffect(() => {
+    if (!assessment?.in_progress) return;
+    const timer = window.setInterval(loadAssessment, 3000);
+    return () => window.clearInterval(timer);
+  }, [assessment?.in_progress, loadAssessment]);
+
+  function update<K extends keyof IdeaFormValues>(
+    key: K,
+    value: IdeaFormValues[K],
+  ) {
     setValues((v) => (v ? { ...v, [key]: value } : v));
   }
 
@@ -92,7 +125,9 @@ export default function IdeaDetailPage() {
         setFormErrors(map);
         setTopError(err.detail ?? null);
       } else {
-        setTopError(err instanceof ApiError ? err.message : "Could not save the idea.");
+        setTopError(
+          err instanceof ApiError ? err.message : "Could not save the idea.",
+        );
       }
     } finally {
       setSaving(false);
@@ -100,12 +135,17 @@ export default function IdeaDetailPage() {
   }
 
   async function handleVisibility(newVis: IdeaVisibility) {
+    if (idea?.visibility === newVis) return;
     setSavingVisibility(true);
+    setTopError(null);
     try {
       const updated = await api.setVisibility(params.id, newVis);
       setIdea(updated);
+      setValues(ideaToForm(updated));
     } catch (err) {
-      setTopError(err instanceof ApiError ? err.message : "Could not change visibility.");
+      setTopError(
+        err instanceof ApiError ? err.message : "Could not change visibility.",
+      );
     } finally {
       setSavingVisibility(false);
     }
@@ -121,28 +161,56 @@ export default function IdeaDetailPage() {
       await loadIdea();
       await loadAssessment();
     } catch (err) {
-      setAssessError(err instanceof ApiError ? err.message : "Assessment failed.");
+      setAssessError(
+        err instanceof ApiError ? err.message : "Assessment failed.",
+      );
     } finally {
       setGenerating(false);
     }
   }
 
   async function handleDelete() {
-    if (!confirm("Delete this idea and all its assessments? This cannot be undone.")) return;
+    if (
+      !confirm(
+        "Delete this idea and all its assessments? This cannot be undone.",
+      )
+    )
+      return;
     try {
       await api.deleteIdea(params.id);
       router.push("/ideas");
     } catch (err) {
-      setTopError(err instanceof ApiError ? err.message : "Could not delete the idea.");
+      setTopError(
+        err instanceof ApiError ? err.message : "Could not delete the idea.",
+      );
     }
   }
 
   if (loading) return <Spinner label="Loading the idea…" />;
+  if (summary && !error) return (
+    <div className="mx-auto max-w-2xl space-y-6">
+      <h1 className="text-3xl font-semibold">{summary.name}</h1>
+      <Alert kind="info" message="The owner has shared this summary with registered users. Detailed planning and assessments remain private." />
+      <Card className="space-y-4 p-6">
+        <p><strong>Industry:</strong> {summary.industry || "Not specified"}</p>
+        <p><strong>Stage:</strong> {STAGE_LABELS[summary.business_stage]}</p>
+        <p><strong>Location:</strong> {summary.target_location || "Not specified"}</p>
+        <p><strong>Intended customers:</strong> {summary.intended_customers || "Not specified"}</p>
+      </Card>
+      <Link href="/dashboard" className="text-brand-700 underline">Back to dashboard</Link>
+    </div>
+  );
   if (error || !idea)
     return (
       <div className="space-y-4">
-        <ErrorState message={error ?? "Could not load the idea."} onRetry={loadIdea} />
-        <Link href="/ideas" className="text-sm text-brand-700 hover:underline">
+        <ErrorState
+          message={error ?? "Could not load the idea."}
+          onRetry={loadIdea}
+        />
+        <Link
+          href="/ideas"
+          className="text-sm font-medium text-brand-700 hover:underline"
+        >
           ← Back to ideas
         </Link>
       </div>
@@ -153,15 +221,21 @@ export default function IdeaDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="page-heading">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{idea.name}</h1>
-          <p className="text-sm text-gray-500">
-            {idea.industry || "No industry"} · {STAGE_LABELS[idea.business_stage]} · Revision{" "}
+          <h1 className="break-words text-3xl font-semibold tracking-tight text-navy">
+            {idea.name}
+          </h1>
+          <p className="text-sm text-muted-light">
+            {idea.industry || "No industry"} ·{" "}
+            {STAGE_LABELS[idea.business_stage]} · Revision{" "}
             {idea.revision_number}
           </p>
         </div>
-        <Link href="/ideas" className="text-sm text-brand-700 hover:underline">
+        <Link
+          href="/ideas"
+          className="text-sm font-medium text-brand-700 hover:underline"
+        >
           ← Back
         </Link>
       </div>
@@ -170,34 +244,41 @@ export default function IdeaDetailPage() {
 
       {/* Visibility setting (screen 12) */}
       {isOwner && (
-        <section className="rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="text-sm font-semibold text-gray-700">Who can see this idea</h2>
+        <Card className="p-4">
+          <h2 className="text-sm font-semibold text-navy">
+            Who can see this idea
+          </h2>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {(Object.keys(VISIBILITY_LABELS) as IdeaVisibility[]).map((v) => (
               <button
                 key={v}
                 type="button"
-                disabled={savingVisibility || idea.visibility === v}
+                disabled={savingVisibility || editing || generating}
+                aria-pressed={idea.visibility === v}
                 onClick={() => handleVisibility(v)}
                 className={`rounded-md border px-3 py-1.5 text-sm ${
                   idea.visibility === v
-                    ? "border-brand-600 bg-brand-50 text-brand-700"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    ? "border-brand-500 bg-brand-50 text-brand-700"
+                    : "border-navy/20 text-navy hover:bg-sand-100"
                 } disabled:opacity-50`}
               >
                 {VISIBILITY_LABELS[v]}
               </button>
             ))}
           </div>
-        </section>
+        </Card>
       )}
 
-      {/* Idea details / edit (screens 9) */}
-      <section className="rounded-lg border border-gray-200 bg-white p-5">
+      {/* Idea details / edit (screen 9) */}
+      <Card className="p-5 sm:p-8">
         {isOwner && !editing ? (
           <div className="space-y-3">
             <div className="flex justify-end">
-              <Button variant="secondary" onClick={() => setEditing(true)}>
+              <Button
+                variant="secondary"
+                disabled={generating || savingVisibility}
+                onClick={() => setEditing(true)}
+              >
                 Edit idea
               </Button>
             </div>
@@ -205,10 +286,20 @@ export default function IdeaDetailPage() {
           </div>
         ) : editing && values ? (
           <form onSubmit={handleSave} className="space-y-5">
-            <h2 className="text-lg font-semibold text-gray-800">Edit idea</h2>
+            <h2 className="text-lg font-semibold text-navy">Edit idea</h2>
             <IdeaForm values={values} errors={formErrors} onChange={update} />
             <div className="flex justify-end gap-3">
-              <Button type="button" variant="secondary" onClick={() => setEditing(false)}>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={saving}
+                onClick={() => {
+                  setValues(ideaToForm(idea));
+                  setFormErrors({});
+                  setTopError(null);
+                  setEditing(false);
+                }}
+              >
                 Cancel
               </Button>
               <Button type="submit" loading={saving}>
@@ -219,31 +310,56 @@ export default function IdeaDetailPage() {
         ) : (
           <IdeaReadOnly idea={idea} />
         )}
-      </section>
+      </Card>
 
       {/* Assessment workspace + result (screens 10, 11) — owner only */}
       {isOwner && (
-        <section className="rounded-lg border border-gray-200 bg-white p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">AI business assessment</h2>
-            <Button onClick={handleGenerate} loading={generating} disabled={generating}>
+        <Card className="p-5 sm:p-8">
+          <div className="page-heading">
+            <h2 className="text-lg font-semibold text-navy">
+              AI business assessment
+            </h2>
+            <Button
+              onClick={handleGenerate}
+              loading={generating}
+              disabled={
+                generating ||
+                assessment?.in_progress ||
+                editing ||
+                assessmentLoading ||
+                !assessment
+              }
+            >
               {assessment?.in_progress
                 ? "Generating…"
                 : latestValid
-                ? "Regenerate assessment"
-                : "Generate assessment"}
+                  ? "Regenerate assessment"
+                  : "Generate assessment"}
             </Button>
           </div>
 
-          {assessError && <div className="mt-3"><Alert message={assessError} /></div>}
+          {assessError && (
+            <div className="mt-3">
+              <Alert message={assessError} />
+            </div>
+          )}
 
-          <AssessmentPanel status={assessment} loading={loading} />
-        </section>
+          {assessError && (
+            <Button variant="ghost" className="mt-3" onClick={loadAssessment}>
+              Retry assessment status
+            </Button>
+          )}
+          <AssessmentPanel status={assessment} loading={assessmentLoading} />
+        </Card>
       )}
 
       {isOwner && (
         <div className="flex justify-end">
-          <Button variant="danger" onClick={handleDelete}>
+          <Button
+            variant="danger"
+            disabled={generating || saving || savingVisibility}
+            onClick={handleDelete}
+          >
             Delete idea
           </Button>
         </div>
@@ -254,7 +370,7 @@ export default function IdeaDetailPage() {
 
 function IdeaReadOnly({ idea }: { idea: BusinessIdea }) {
   return (
-    <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+    <dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
       <Field label="Problem" value={idea.problem} full />
       <Field label="Solution" value={idea.solution} full />
       <Field label="Industry" value={idea.industry} />
@@ -268,11 +384,23 @@ function IdeaReadOnly({ idea }: { idea: BusinessIdea }) {
   );
 }
 
-function Field({ label, value, full }: { label: string; value: string; full?: boolean }) {
+function Field({
+  label,
+  value,
+  full,
+}: {
+  label: string;
+  value: string;
+  full?: boolean;
+}) {
   return (
     <div className={full ? "sm:col-span-2" : ""}>
-      <dt className="text-xs font-medium uppercase text-gray-400">{label}</dt>
-      <dd className="mt-0.5 whitespace-pre-wrap text-sm text-gray-800">{value || "—"}</dd>
+      <dt className="text-xs font-medium uppercase tracking-wide text-muted-light">
+        {label}
+      </dt>
+      <dd className="mt-0.5 whitespace-pre-wrap text-sm text-navy">
+        {value || "—"}
+      </dd>
     </div>
   );
 }
@@ -284,12 +412,21 @@ function AssessmentPanel({
   status: AssessmentStatusResponse | null;
   loading: boolean;
 }) {
-  if (loading || !status) return <div className="mt-4"><Spinner label="Loading assessment…" /></div>;
+  if (loading)
+    return (
+      <div className="mt-4">
+        <Spinner label="Loading assessment…" />
+      </div>
+    );
+  if (!status) return null;
 
   if (status.current_status === "in_progress") {
     return (
       <div className="mt-4">
-        <Alert kind="info" message="Assessment is being generated. Please wait…" />
+        <Alert
+          kind="info"
+          message="Assessment is being generated. Please wait…"
+        />
         <Spinner label="Generating assessment…" />
       </div>
     );
@@ -313,16 +450,38 @@ function AssessmentPanel({
       )}
       {status.latest_valid ? (
         <div className="space-y-4">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-muted-light">
             Generated from idea revision {status.latest_valid.idea_revision}
           </p>
-          <AssessmentSection title="Market considerations" text={status.latest_valid.market_considerations} />
-          <AssessmentSection title="Target customers" text={status.latest_valid.target_customer_analysis} />
-          <AssessmentSection title="Competitors" text={status.latest_valid.competitor_considerations} />
-          <AssessmentSection title="Indicative costs" text={status.latest_valid.indicative_costs} />
-          <AssessmentSection title="Suggested next steps" text={status.latest_valid.suggested_next_steps} />
-          <AssessmentSection title="Assumptions" text={status.latest_valid.assumptions} highlight />
-          <AssessmentSection title="Sources" text={status.latest_valid.sources} />
+          <AssessmentSection
+            title="Market considerations"
+            text={status.latest_valid.market_considerations}
+          />
+          <AssessmentSection
+            title="Target customers"
+            text={status.latest_valid.target_customer_analysis}
+          />
+          <AssessmentSection
+            title="Competitors"
+            text={status.latest_valid.competitor_considerations}
+          />
+          <AssessmentSection
+            title="Indicative costs"
+            text={status.latest_valid.indicative_costs}
+          />
+          <AssessmentSection
+            title="Suggested next steps"
+            text={status.latest_valid.suggested_next_steps}
+          />
+          <AssessmentSection
+            title="Assumptions"
+            text={status.latest_valid.assumptions}
+            highlight
+          />
+          <AssessmentSection
+            title="Sources"
+            text={status.latest_valid.sources}
+          />
         </div>
       ) : (
         <EmptyState
@@ -343,16 +502,22 @@ function AssessmentSection({
   text: string;
   highlight?: boolean;
 }) {
+  // The Assumptions block uses the rare Warm Gold highlight so uncertain
+  // information stands out clearly (guide §22: gold used sparingly).
   return (
     <div
       className={`rounded-md border p-4 ${
-        highlight ? "border-amber-200 bg-amber-50" : "border-gray-200 bg-gray-50"
+        highlight ? "border-gold-200 bg-gold-50" : "border-navy/10 bg-sand-50"
       }`}
     >
-      <h3 className={`text-sm font-semibold ${highlight ? "text-amber-800" : "text-gray-700"}`}>
+      <h3
+        className={`text-sm font-semibold ${highlight ? "text-gold-700" : "text-navy"}`}
+      >
         {title}
       </h3>
-      <p className="mt-1 whitespace-pre-wrap text-sm text-gray-800">{text || "—"}</p>
+      <p className="mt-1 whitespace-pre-wrap text-sm text-navy">
+        {text || "—"}
+      </p>
     </div>
   );
 }

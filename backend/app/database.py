@@ -1,10 +1,7 @@
 """Database engine, session factory, and helpers.
 
-The declarative ``Base`` lives in :mod:`app.models.base` so it is co-located
-with the models. Tables are created from the declarative models via
-``create_all`` for development / first run / tests. Migrations (Alembic) can be
-added in a later sprint when the schema evolves; for now the schema is stable
-and reproducible.
+Runtime schema changes use Alembic migrations. init_db is only a model utility
+for isolated experiments; Docker and seeds never call it.
 """
 
 from __future__ import annotations

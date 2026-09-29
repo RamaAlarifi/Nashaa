@@ -15,7 +15,7 @@ from passlib.context import CryptContext
 
 # passlib 1.7.4 + bcrypt 4.x: pin bcrypt at 4.0.1 to avoid the
 # "attribute 'bcrypt' has no attribute '__about__'" runtime issue.
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+_pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:

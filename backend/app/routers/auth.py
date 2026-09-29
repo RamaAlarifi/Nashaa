@@ -21,6 +21,7 @@ from app.schemas.auth import (
 from app.schemas.profile import ProfileOut
 from app.schemas.user import UserOut
 from app.services import auth as auth_service
+from app.services.mail import send_password_reset
 from app.services.errors import (
     EmailAlreadyRegistered,
     InvalidCredentials,
@@ -93,7 +94,16 @@ def request_password_reset(payload: PasswordResetRequestIn, db: Session = Depend
     message = "If an account exists for this email, a reset link has been sent."
     reset_token: str | None = None
     settings = get_settings()
-    if settings.environment != "production" and result is not None:
+    if not settings.smtp_host and settings.environment != "testing" and not settings.expose_reset_tokens:
+        raise HTTPException(status_code=503, detail="Password recovery is temporarily unavailable. Please try again later.")
+    if result is not None:
+        try:
+            send_password_reset(payload.email, result[1])
+        except Exception:
+            # Same response for known/unknown accounts; no secrets in logs.
+            import logging
+            logging.getLogger("nashaa").error("Password recovery delivery failed")
+    if (settings.environment == "testing" or settings.expose_reset_tokens) and result is not None:
         reset_token = result[1]
     return PasswordResetRequestOut(message=message, reset_token=reset_token)
 

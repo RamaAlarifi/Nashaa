@@ -1,0 +1,19 @@
+# Keep local state, secrets, and build output out of the image.
+node_modules/
+.next/
+out/
+build/
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+.git/
+.gitignore
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+.env.*
+!.env.example
+*.dump

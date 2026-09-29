@@ -14,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import get_settings
+from app.database import engine
+from sqlalchemy import text
 from app.routers import assessments, auth, business_ideas, dashboard, profile
 
 logger = logging.getLogger("nashaa")
@@ -45,7 +47,15 @@ def create_app() -> FastAPI:
 
     @app.get("/api/health", tags=["health"])
     def health() -> dict:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
         return {"status": "ok", "app": settings.app_name, "environment": settings.environment}
+
+    # Generic health probe (Nashaa_Guide.md §25: "such as /health") for container
+    # health checks that should not depend on the /api prefix.
+    @app.get("/health", tags=["health"])
+    def health_root() -> dict:
+        return health()
 
     # Translate 422 validation errors into clear, useful field messages
     # (project rule 6).

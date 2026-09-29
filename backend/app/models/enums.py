@@ -1,7 +1,7 @@
 """Enumerations shared across models.
 
 Stored as VARCHAR (``native_enum=False``) to keep schema changes simple
-and migration-friendly across the three sprints.
+and migration-friendly for Sprint 1.
 """
 
 from __future__ import annotations
@@ -22,14 +22,6 @@ class AccountStatus(str, enum.Enum):
     DEACTIVATED = "deactivated"
 
 
-class VerificationStatus(str, enum.Enum):
-    # Sprint 1 keeps this as a stored field; verification flow is Sprint 2.
-    UNVERIFIED = "unverified"
-    PENDING = "pending"
-    VERIFIED = "verified"
-    REJECTED = "rejected"
-
-
 class BusinessStage(str, enum.Enum):
     IDEA = "idea"
     VALIDATION = "validation"
@@ -48,11 +40,6 @@ class ProfileVisibility(str, enum.Enum):
     PUBLIC = "public"
     REGISTERED = "registered"
     PRIVATE = "private"
-
-
-class ContactPreference(str, enum.Enum):
-    DIRECT_MESSAGE = "direct_message"
-    CONTACT_REQUEST = "contact_request"
 
 
 class AssessmentStatus(str, enum.Enum):

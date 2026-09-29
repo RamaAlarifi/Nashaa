@@ -14,7 +14,7 @@ from app.core.security import (
     hash_token,
     verify_password,
 )
-from app.models.enums import ContactPreference, ProfileVisibility, Role
+from app.models.enums import ProfileVisibility, Role
 from app.models.password_reset import PasswordReset
 from app.models.profile import Profile
 from app.models.session import Session as SessionModel
@@ -57,7 +57,6 @@ def create_user(
         user=user,
         display_name=display_name,
         role_specific_info={},
-        contact_preference=ContactPreference.CONTACT_REQUEST,
         profile_visibility=ProfileVisibility.REGISTERED,
     )
     db.add(user)
@@ -121,7 +120,7 @@ def request_password_reset(db: Session, email: str) -> tuple[PasswordReset, str]
 
 def confirm_password_reset(db: Session, *, token: str, new_password: str) -> User:
     reset = db.execute(
-        select(PasswordReset).where(PasswordReset.token_hash == hash_token(token))
+        select(PasswordReset).where(PasswordReset.token_hash == hash_token(token)).with_for_update()
     ).scalar_one_or_none()
     if reset is None:
         raise ResetTokenNotFound("This reset link is invalid.")
@@ -133,6 +132,8 @@ def confirm_password_reset(db: Session, *, token: str, new_password: str) -> Use
     user = reset.user
     user.password_hash = hash_password(new_password)
     reset.used_at = _utcnow()
+    for other in db.execute(select(PasswordReset).where(PasswordReset.user_id == user.id, PasswordReset.used_at.is_(None))).scalars():
+        other.used_at = reset.used_at
     # Invalidate all active sessions for this user after a password change.
     active_sessions = db.execute(
         select(SessionModel).where(SessionModel.user_id == user.id)

@@ -1,0 +1,104 @@
+# Nashaa production-style stack (Nashaa_Guide.md §25).
+#
+# Prebuilt images, no source mounts, no auto-reload, non-root users, and the
+# database NOT exposed publicly. Place this behind HTTPS (hosting platform or a
+# reverse proxy routing / to Next.js and /api to FastAPI).
+#
+#   docker compose -f docker-compose.production.yml up -d --build
+#
+# Use different, strong secrets in production .env (never commit them).
+
+services:
+  database:
+    image: postgres:16-alpine
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nashaa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-nashaa}
+    volumes:
+      - nashaa_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nashaa} -d ${POSTGRES_DB:-nashaa}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dbnet
+    # No `ports:` — the database is reachable only on the private dbnet.
+
+  backend:
+    image: nashaa-backend:prod
+    build:
+      context: ./backend
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    env_file:
+      - ${APP_ENV_FILE:-.env}
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-nashaa}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB:-nashaa}
+      ENVIRONMENT: production
+      LOAD_DEMO_DATA: "false"
+      EXPOSE_RESET_TOKENS: "false"
+    depends_on:
+      database:
+        condition: service_healthy
+    # No source mount, no --reload (uses the image's production CMD).
+    expose:
+      - "8000" # reachable by the frontend on the appnet; not published to host
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; exit(0 if u.urlopen('http://localhost:8000/health', timeout=3).status==200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    networks:
+      - dbnet
+      - appnet
+
+  frontend:
+    image: nashaa-frontend:prod
+    build:
+      context: ./frontend
+      target: runner
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:8000
+      NEXT_PUBLIC_API_BASE: ""
+      NODE_ENV: production
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000" # put a reverse proxy / load balancer (HTTPS) in front
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    networks:
+      - appnet
+
+networks:
+  dbnet:
+    driver: bridge
+  appnet:
+    driver: bridge
+
+volumes:
+  nashaa_pgdata:

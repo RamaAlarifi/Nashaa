@@ -7,7 +7,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from app.models.enums import AccountStatus, Role, VerificationStatus
+from app.models.enums import AccountStatus, Role
 from app.schemas import ORM_CONFIG, SafeEmail
 
 
@@ -18,6 +18,5 @@ class UserOut(BaseModel):
     email: SafeEmail
     role: Role
     account_status: AccountStatus
-    verification_status: VerificationStatus
     created_at: datetime
     updated_at: datetime

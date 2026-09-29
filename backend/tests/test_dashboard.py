@@ -39,7 +39,7 @@ def test_innovator_dashboard_basic(client):
     body = res.json()
     assert body["role"] == "innovator"
     assert body["ideas"] is None
-    assert body["message"]  # placeholder for Sprint 2 features
+    assert body["message"]
 
 
 def test_investor_dashboard_basic(client):
@@ -52,14 +52,14 @@ def test_investor_dashboard_basic(client):
     assert body["message"]
 
 
-def test_admin_dashboard_shows_admin_actions(client):
+def test_admin_dashboard_basic(client):
     _, token = register_and_login(client, email="dash_admin@nashaa.sa",
                                   role="admin", display_name="Admin")
     res = client.get("/api/dashboard", headers=auth_headers(token))
     body = res.json()
     assert body["role"] == "admin"
-    assert body["admin_actions"]
-    assert "Review verification requests" in body["admin_actions"]
+    assert body["message"]
+    assert "admin_actions" not in body
 
 
 def test_role_restriction_not_bypassed_by_direct_request(client):

@@ -1,9 +1,13 @@
 // Reusable state components: loading, empty, error, and an alert banner.
-// These satisfy the "useful error, loading, and empty states" screen (13).
+// These satisfy the "useful error, loading, and empty states" screen (13) and
+// stay aligned with the brand palette (guide §22).
 
 export function Spinner({ label = "Loading…" }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center gap-3 py-8 text-gray-500" role="status">
+    <div
+      className="flex items-center justify-center gap-3 py-8 text-muted-light"
+      role="status"
+    >
       <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
       <span className="text-sm">{label}</span>
     </div>
@@ -20,9 +24,11 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-      <p className="font-medium text-gray-700">{title}</p>
-      {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+    <div className="rounded-2xl border border-dashed border-navy/15 bg-white px-6 py-12 text-center">
+      <p className="font-medium text-navy">{title}</p>
+      {description && (
+        <p className="mt-1 text-sm text-muted-light">{description}</p>
+      )}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
@@ -38,7 +44,10 @@ export function ErrorState({
   onRetry?: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center" role="alert">
+    <div
+      className="rounded-lg border border-red-200 bg-red-50 p-6 text-center"
+      role="alert"
+    >
       <p className="font-medium text-red-700">{title}</p>
       <p className="mt-1 text-sm text-red-600">{message}</p>
       {onRetry && (
@@ -63,11 +72,14 @@ export function Alert({
 }) {
   const styles = {
     error: "border-red-200 bg-red-50 text-red-700",
-    success: "border-green-200 bg-green-50 text-green-700",
-    info: "border-blue-200 bg-blue-50 text-blue-700",
+    success: "border-brand-200 bg-brand-50 text-brand-700",
+    info: "border-turquoise-100 bg-turquoise-50 text-turquoise-700",
   }[kind];
   return (
-    <div className={`rounded-md border px-4 py-3 text-sm ${styles}`} role="alert">
+    <div
+      className={`rounded-md border px-4 py-3 text-sm ${styles}`}
+      role={kind === "error" ? "alert" : "status"}
+    >
       {message}
     </div>
   );

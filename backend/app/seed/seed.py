@@ -4,8 +4,8 @@ This script creates:
   - 16 test accounts across the four roles (US01 ready to log in)
   - 12 fictional Saudi business ideas in different industries and stages,
     with a mix of private / registered visibility and some incomplete ideas
-  - sample assessments: successful, failed, and in-progress (US06/US07)
-  - password-reset tokens in valid, expired, and used states (US02)
+  - successful and failed fictional assessments (US06/US07)
+Password reset edge cases and delayed responses live in the isolated tests.
 
 Run with:
     python -m app.seed.seed
@@ -16,62 +16,59 @@ All data is clearly fictional. Do not use real personal data in demonstrations
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-
 from sqlalchemy import select
 
-from app.database import SessionLocal, init_db
+from app.database import SessionLocal
+from app.config import get_settings
 from app.models.assessment import Assessment
 from app.models.business_idea import BusinessIdea
 from app.models.enums import (
     AssessmentStatus,
     BusinessStage,
-    ContactPreference,
     IdeaVisibility,
     ProfileVisibility,
     Role,
 )
-from app.models.password_reset import PasswordReset
 from app.models.user import User
-from app.core.security import generate_token, hash_password, hash_token
+from app.core.security import hash_password
 
 DEFAULT_PASSWORD = "Password123!"
 
 
-# (email, role, display_name, location, description, contact_pref, visibility)
+# (email, role, display_name, location, description, visibility)
 USERS = [
     ("admin@nashaa.sa", Role.ADMIN, "Platform Admin", "Riyadh",
-     "Nashaa platform administrator.", ContactPreference.CONTACT_REQUEST, ProfileVisibility.PRIVATE),
+     "Nashaa platform administrator.", ProfileVisibility.PRIVATE),
     ("owner1@nashaa.sa", Role.BUSINESS_OWNER, "Layla Al-Otaibi", "Riyadh",
-     "Restaurant owner exploring sustainable packaging.", ContactPreference.DIRECT_MESSAGE, ProfileVisibility.REGISTERED),
+     "Restaurant owner exploring sustainable packaging.", ProfileVisibility.REGISTERED),
     ("owner2@nashaa.sa", Role.BUSINESS_OWNER, "Khalid Al-Harbi", "Jeddah",
-     "Logistics startup founder.", ContactPreference.CONTACT_REQUEST, ProfileVisibility.REGISTERED),
+     "Logistics startup founder.", ProfileVisibility.REGISTERED),
     ("owner3@nashaa.sa", Role.BUSINESS_OWNER, "Noura Al-Qahtani", "Dammam",
-     "Health-tech entrepreneur.", ContactPreference.CONTACT_REQUEST, ProfileVisibility.PUBLIC),
+     "Health-tech entrepreneur.", ProfileVisibility.PUBLIC),
     ("owner4@nashaa.sa", Role.BUSINESS_OWNER, "Faisal Al-Dossari", "Riyadh",
-     "Education services for kids.", ContactPreference.DIRECT_MESSAGE, ProfileVisibility.REGISTERED),
+     "Education services for kids.", ProfileVisibility.REGISTERED),
     ("owner5@nashaa.sa", Role.BUSINESS_OWNER, "Sara Al-Mutairi", "Mecca",
-     "E-commerce handmade goods.", ContactPreference.CONTACT_REQUEST, ProfileVisibility.REGISTERED),
+     "E-commerce handmade goods.", ProfileVisibility.REGISTERED),
     ("innov1@nashaa.sa", Role.INNOVATOR, "Omar Al-Shehri", "Riyadh",
-     "Full-stack developer.", ContactPreference.DIRECT_MESSAGE, ProfileVisibility.REGISTERED),
+     "Full-stack developer.", ProfileVisibility.REGISTERED),
     ("innov2@nashaa.sa", Role.INNOVATOR, "Mona Al-Zahrani", "Jeddah",
-     "UX/UI designer.", ContactPreference.CONTACT_REQUEST, ProfileVisibility.REGISTERED),
+     "UX/UI designer.", ProfileVisibility.REGISTERED),
     ("innov3@nashaa.sa", Role.INNOVATOR, "Tariq Al-Ghamdi", "Dammam",
-     "Cloud and DevOps consultant.", ContactPreference.CONTACT_REQUEST, ProfileVisibility.REGISTERED),
+     "Cloud and DevOps consultant.", ProfileVisibility.REGISTERED),
     ("innov4@nashaa.sa", Role.INNOVATOR, "Hala Al-Subaie", "Riyadh",
-     "Mobile app developer.", ContactPreference.DIRECT_MESSAGE, ProfileVisibility.REGISTERED),
+     "Mobile app developer.", ProfileVisibility.REGISTERED),
     ("innov5@nashaa.sa", Role.INNOVATOR, "Yousef Al-Anazi", "Medina",
-     "Marketing and growth specialist.", ContactPreference.CONTACT_REQUEST, ProfileVisibility.REGISTERED),
+     "Marketing and growth specialist.", ProfileVisibility.REGISTERED),
     ("invest1@nashaa.sa", Role.INVESTOR, "Reem Al-Maliki", "Riyadh",
-     "Angel investor, sustainability focus.", ContactPreference.CONTACT_REQUEST, ProfileVisibility.REGISTERED),
+     "Angel investor, sustainability focus.", ProfileVisibility.REGISTERED),
     ("invest2@nashaa.sa", Role.INVESTOR, "Abdullah Al-Asmari", "Jeddah",
-     "Venture capital, logistics and SaaS.", ContactPreference.CONTACT_REQUEST, ProfileVisibility.REGISTERED),
+     "Venture capital, logistics and SaaS.", ProfileVisibility.REGISTERED),
     ("invest3@nashaa.sa", Role.INVESTOR, "Maha Al-Naimi", "Dammam",
-     "Health and education angel investor.", ContactPreference.CONTACT_REQUEST, ProfileVisibility.REGISTERED),
+     "Health and education angel investor.", ProfileVisibility.REGISTERED),
     ("invest4@nashaa.sa", Role.INVESTOR, "Sultan Al-Rashidi", "Riyadh",
-     "Early-stage retail and e-commerce investor.", ContactPreference.DIRECT_MESSAGE, ProfileVisibility.REGISTERED),
+     "Early-stage retail and e-commerce investor.", ProfileVisibility.REGISTERED),
     ("invest5@nashaa.sa", Role.INVESTOR, "Dana Al-Faris", "Mecca",
-     "Impact investor, women-led businesses.", ContactPreference.CONTACT_REQUEST, ProfileVisibility.REGISTERED),
+     "Impact investor, women-led businesses.", ProfileVisibility.REGISTERED),
 ]
 
 
@@ -133,7 +130,7 @@ def _get_user(db, email: str) -> User:
 
 def _create_users(db) -> dict[str, User]:
     created: dict[str, User] = {}
-    for email, role, name, location, desc, contact, vis in USERS:
+    for email, role, name, location, desc, vis in USERS:
         existing = _get_user(db, email)
         if existing is not None:
             created[email] = existing
@@ -151,7 +148,6 @@ def _create_users(db) -> dict[str, User]:
             location=location,
             short_description=desc,
             role_specific_info={},
-            contact_preference=contact,
             profile_visibility=vis,
         )
         db.add(user)
@@ -166,6 +162,9 @@ def _create_ideas(db, users: dict[str, User]) -> dict[str, BusinessIdea]:
     for spec in IDEAS:
         (owner_email, name, problem, solution, industry, stage, loc, cust, budget, challenges, vis, revision) = spec
         owner = users[owner_email]
+        existing = db.execute(select(BusinessIdea).where(BusinessIdea.owner_id == owner.id, BusinessIdea.name == name)).scalar_one_or_none()
+        if existing is not None:
+            continue
         idea = BusinessIdea(
             owner_id=owner.id,
             name=name,
@@ -192,6 +191,9 @@ def _create_assessments(db, ideas: dict[str, BusinessIdea]) -> None:
 
     mock = MockAssessmentProvider()
     from app.ai.base import AssessmentInput
+
+    if not all(name in ideas for name in ("GreenBox", "SaudiHands", "QuickRoute", "CareLine")):
+        return
 
     # Successful assessment for GreenBox (revision 1).
     idea = ideas["GreenBox"]
@@ -241,61 +243,27 @@ def _create_assessments(db, ideas: dict[str, BusinessIdea]) -> None:
     )
     db.add(a3)
 
-    # In-progress assessment for CareLine (simulates a generation in flight).
+    # Interrupted fictional attempt; the owner can regenerate immediately.
     a4 = Assessment(
         idea_id=ideas["CareLine"].id, idea_revision=ideas["CareLine"].revision_number,
-        input_snapshot={"name": "CareLine"}, generation_status=AssessmentStatus.IN_PROGRESS,
+        input_snapshot={"name": "CareLine"}, generation_status=AssessmentStatus.FAILED,
+        error_message="Fictional interrupted attempt. Generate an assessment to continue.",
     )
     db.add(a4)
     db.commit()
 
 
-def _create_reset_tokens(db, users: dict[str, User]) -> dict[str, str]:
-    """Create valid, expired, and used reset tokens. Returns plaintext tokens."""
-    tokens: dict[str, str] = {}
-    now = datetime.now(timezone.utc)
-
-    # Valid reset token for owner1.
-    valid_token = generate_token()
-    db.add(PasswordReset(
-        user_id=users["owner1@nashaa.sa"].id,
-        token_hash=hash_token(valid_token),
-        expires_at=now + timedelta(minutes=25),
-    ))
-    tokens["valid_owner1"] = valid_token
-
-    # Expired reset token for owner2.
-    expired_token = generate_token()
-    db.add(PasswordReset(
-        user_id=users["owner2@nashaa.sa"].id,
-        token_hash=hash_token(expired_token),
-        expires_at=now - timedelta(minutes=10),
-    ))
-    tokens["expired_owner2"] = expired_token
-
-    # Used reset token for owner3.
-    used_token = generate_token()
-    db.add(PasswordReset(
-        user_id=users["owner3@nashaa.sa"].id,
-        token_hash=hash_token(used_token),
-        expires_at=now + timedelta(minutes=25),
-        used_at=now - timedelta(minutes=5),
-    ))
-    tokens["used_owner3"] = used_token
-
-    db.commit()
-    return tokens
-
-
 def run_seed() -> dict:
     """Create all seed data. Idempotent: existing users are kept."""
-    init_db()
+    if get_settings().environment == "production":
+        raise RuntimeError("Fictional seed data is disabled in production.")
     db = SessionLocal()
     try:
         users = _create_users(db)
         ideas = _create_ideas(db, users)
-        _create_assessments(db, ideas)
-        tokens = _create_reset_tokens(db, users)
+        if ideas:
+            _create_assessments(db, ideas)
+        tokens = {}
     finally:
         db.close()
     return {"users": len(users), "ideas": len(ideas), "reset_tokens": tokens}
@@ -305,10 +273,7 @@ def main() -> None:
     summary = run_seed()
     print("Nashaa seed complete.")
     print(f"  Users: {summary['users']}  | Ideas: {summary['ideas']}")
-    print(f"  Test password for all accounts: {DEFAULT_PASSWORD}")
-    print("  Reset tokens (for testing US02):")
-    for label, tok in summary["reset_tokens"].items():
-        print(f"    {label}: {tok}")
+
 
 
 if __name__ == "__main__":

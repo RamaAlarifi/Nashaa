@@ -20,6 +20,7 @@ from app.services.errors import IdeaNotFound, NotOwner, VisibilityBlocked
 # Fields whose change means the assessment is out of date and the idea's
 # revision number must increment (US05/US07).
 ASSESSMENT_RELATED_FIELDS = (
+    "name",
     "problem",
     "solution",
     "industry",

@@ -4,7 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/Button";
-import { IdeaForm, EMPTY_IDEA, type IdeaFormValues } from "@/components/IdeaForm";
+import { Card } from "@/components/Card";
+import {
+  IdeaForm,
+  EMPTY_IDEA,
+  type IdeaFormValues,
+} from "@/components/IdeaForm";
 import { Alert } from "@/components/States";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -17,7 +22,10 @@ export default function NewIdeaPage() {
   const [topError, setTopError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  function update<K extends keyof IdeaFormValues>(key: K, value: IdeaFormValues[K]) {
+  function update<K extends keyof IdeaFormValues>(
+    key: K,
+    value: IdeaFormValues[K],
+  ) {
     setValues((v) => ({ ...v, [key]: value }));
   }
 
@@ -36,7 +44,9 @@ export default function NewIdeaPage() {
         setErrors(map);
         setTopError(err.detail ?? null);
       } else {
-        setTopError(err instanceof ApiError ? err.message : "Could not save the idea.");
+        setTopError(
+          err instanceof ApiError ? err.message : "Could not save the idea.",
+        );
       }
     } finally {
       setSaving(false);
@@ -57,22 +67,30 @@ export default function NewIdeaPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-900">Create a business idea</h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <h1 className="break-words text-3xl font-semibold tracking-tight text-navy">
+        Create a business idea
+      </h1>
+      <p className="mt-1 text-sm text-muted-light">
         Describe your idea. You can edit it later and request an AI assessment.
       </p>
-      <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
-        {topError && <Alert message={topError} />}
-        <IdeaForm values={values} errors={errors} onChange={update} />
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={() => router.back()}>
-            Cancel
-          </Button>
-          <Button type="submit" loading={saving}>
-            Save idea
-          </Button>
-        </div>
-      </form>
+      <Card className="mt-6 p-6">
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          {topError && <Alert message={topError} />}
+          <IdeaForm values={values} errors={errors} onChange={update} />
+          <div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => router.back()}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" loading={saving}>
+              Save idea
+            </Button>
+          </div>
+        </form>
+      </Card>
     </div>
   );
 }
