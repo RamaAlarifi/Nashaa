@@ -1,0 +1,25 @@
+# Local development services for Nashaa.
+# Only PostgreSQL is required for Sprint 1. The app runs locally with
+# `uvicorn` (backend) and `npm run dev` (frontend) outside compose.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: nashaa-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nashaa
+      POSTGRES_PASSWORD: nashaa_dev_password
+      POSTGRES_DB: nashaa
+    ports:
+      - "5432:5432"
+    volumes:
+      - nashaa_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nashaa -d nashaa"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  nashaa_pgdata:

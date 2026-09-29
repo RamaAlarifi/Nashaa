@@ -1,0 +1,88 @@
+# ---------- Secrets / env ----------
+.env
+.env.local
+.env.*.local
+*.env.local
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# Keep examples tracked
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+env/
+ENV/
+backend/.venv/
+
+# Python testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# ---------- Node / Next.js ----------
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js
+.next/
+out/
+build/
+next-env.d.ts
+
+# Production
+*.tsbuildinfo
+
+# Misc
+.DS_Store
+*.pem
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------- Docker ----------
+# don't ignore docker-compose files
