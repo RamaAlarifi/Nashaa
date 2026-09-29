@@ -1,106 +1,245 @@
-# Nashaa - From Idea to Opportunity
+# Nashaa — From Idea to Opportunity
 
-The delivered application contains Sprint 1 (US01-US08): accounts, password recovery, profiles, role dashboards, business ideas, AI assessments, and idea visibility.
+Nashaa is a web app where a business owner can save their idea, ask the AI to
+assess it, and share a short summary. Innovators and investors get their own
+dashboards and profiles, and an admin can manage accounts.
 
-## What you can do
+This is our **Sprint 1** build (user stories US01–US08): sign up, login,
+password recovery, profiles, role dashboards, business ideas, AI assessments,
+and idea visibility.
 
-Business owners can create, save, view and edit ideas, choose private or registered-user summary visibility, and generate or regenerate assessments. Each assessment records its input and idea revision, and includes market considerations, customers, competitors, indicative costs, next steps, assumptions and sources when available. Failed regeneration preserves the last successful assessment.
+---
 
-Innovators and investors maintain their role-specific profiles and account dashboards. Administrators have an account dashboard and profile; operator-provisioned accounts cannot be created through public registration. Roles and ownership are checked by the API. Registered users can view an idea's shared summary by its workspace link; private details and assessments remain owner-only.
+## What you need
 
-## Run locally with Docker
+- **Git** — to download the code
+- **Docker Desktop** (with Docker Compose v2) — the easy way to run everything
 
-Requirements: Docker Engine/Desktop and Docker Compose v2.
+That's it for the easy path. Docker starts the database, the backend (FastAPI),
+and the frontend (Next.js) for you.
+
+---
+
+## Step 1 — Get the code
+
+```powershell
+git clone https://github.com/RamaAlarifi/Nashaa.git
+cd Nashaa
+```
+
+If the repo is private you'll be asked for a username and a **Personal Access
+Token** (not your password). Make one at
+https://github.com/settings/tokens/new with the **`repo`** scope.
+
+---
+
+## Step 2 — Make your `.env` file
+
+The app reads settings from a file called `.env`. We give you a ready-made
+example, just copy it:
 
 ```powershell
 Copy-Item .env.example .env
-# For a local fictional demo only, set EXPOSE_RESET_TOKENS=true in .env.
+```
+
+The defaults in `.env.example` work out of the box for a local demo:
+
+- `AI_PROVIDER=mock` → the AI returns clearly-labeled **fake** assessments, so
+  you don't need an API key.
+- Database password and secret key are filled with demo values.
+
+> Don't commit `.env`. It's already in `.gitignore`.
+
+### (Optional) Use real Gemini AI
+
+If you want real AI answers instead of the fake ones, edit `.env`:
+
+```
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-2.5-flash
+```
+
+Get a key from https://aistudio.google.com/app/apikey. Pick a current model
+name from the Gemini docs.
+
+### (Optional) Password recovery without email
+
+By default, password reset needs an SMTP email server. For a local demo
+without email, set this in `.env`:
+
+```
+EXPOSE_RESET_TOKENS=true
+```
+
+Then a reset link appears right on the "Forgot password" screen. Leave it
+`false` on any shared machine — never use it in production.
+
+---
+
+## Step 3 — Run it (Docker, the easy way)
+
+```powershell
 docker compose up -d --build --wait
+```
+
+The first run takes a few minutes (it downloads and builds images). When it
+finishes:
+
+- **Frontend (the website):** http://localhost:3000
+- **API docs (Swagger):** http://localhost:8000/api/docs
+- **Health check:** http://localhost:8000/health
+
+The database tables are created automatically by Alembic when the backend
+starts. PostgreSQL data is saved in a Docker volume, so it stays after restart.
+
+---
+
+## Step 4 — (Optional) Load demo data
+
+Want some fake accounts and ideas to look at? Run this once:
+
+```powershell
 docker compose exec backend python -m app.seed.seed
 ```
 
-Open http://localhost:3000. API documentation: http://localhost:8000/api/docs. Health: http://localhost:8000/health. The six application tables are created by Alembic at backend startup. PostgreSQL uses persistent storage. Development ports bind only to localhost.
+It adds 16 fake accounts and 12 fake ideas. Running it again won't duplicate
+them. **Demo password for all of them:** `Password123!`
 
-Seeding is optional, disabled by default, and refused in production. It adds 16 fictional accounts and 12 fictional ideas without duplicating them on subsequent runs. Demo password: `Password123!`. Example accounts: `owner1@nashaa.sa`, `innov1@nashaa.sa`, `invest1@nashaa.sa`, `admin@nashaa.sa`. Never load these accounts into a real deployment.
+| Role          | Login email        |
+| ------------- | ------------------ |
+| Business owner | `owner1@nashaa.sa`  |
+| Innovator    | `innov1@nashaa.sa`  |
+| Investor     | `invest1@nashaa.sa` |
+| Admin        | `admin@nashaa.sa`   |
+
+> These are fictional. Never load them into a real deployment.
+
+---
+
+## Useful commands
 
 ```powershell
-docker compose build
-docker compose up -d --wait
+# See live logs
 docker compose logs -f backend
 docker compose logs -f frontend
 docker compose logs -f database
-docker compose exec backend alembic current
-docker compose exec backend alembic upgrade head
-docker compose exec backend pytest -p no:cacheprovider
-docker compose exec frontend npm run check
+
+# Stop the app (keeps your data)
 docker compose stop
+
+# Start again
+docker compose up -d --wait
+
+# Stop and remove containers (data still saved in the volume)
 docker compose down
+
+# Delete everything including the database data — careful!
+docker compose down -v
 ```
 
-`down` retains PostgreSQL storage. Do not use `down -v` on a database you need to keep. Docker logs rotate at 10 MB with three retained files per service. Health probes verify PostgreSQL, API database connectivity, and frontend HTTP availability.
+---
 
-## Password recovery
+## Running without Docker (manual)
 
-Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`, optional `SMTP_USERNAME` / `SMTP_PASSWORD`, and `RESET_URL`. SMTP uses STARTTLS. Production requires HTTPS frontend/reset URLs and SMTP configuration. Reset secrets are hashed, expire, are single-use, and revoke existing sessions and other reset links when consumed. Email links carry tokens in the URL fragment to avoid access-log exposure.
+If you can't use Docker, you can run the three parts yourself. You'll need
+**Python 3.11+**, **Node.js 18+**, and a **PostgreSQL** server running.
 
-For a local demo without email, explicitly set `EXPOSE_RESET_TOKENS=true`; a reset link appears on the recovery screen. Leave this false on any shared environment. It is forbidden in production. No real email provider credentials are included.
+### A) Database
 
-## AI provider
+Create a database (e.g. `nashaa`) and a user with a password you know.
 
-`AI_PROVIDER=mock` runs offline with clearly labeled fictional assessments. For live AI set `AI_PROVIDER=gemini`, `GEMINI_API_KEY`, and `GEMINI_MODEL` to an available model in your Google account. Consult the [official model list](https://ai.google.dev/gemini-api/docs/models) and [retirement schedule](https://ai.google.dev/gemini-api/docs/deprecations). No retired model is hard-coded as a default.
-
-Keys stay in the backend. Live generation sends the submitted idea to the selected provider. Sources are reported only when available; general-knowledge output is identified as such. Costs are estimates and assumptions require validation. A provider failure never replaces a valid saved result.
-
-## Production configuration
-
-Create a separate protected environment file with a strong, URL-safe PostgreSQL password, SMTP settings, HTTPS `FRONTEND_ORIGIN` and `RESET_URL`, and the chosen AI settings. Set `APP_ENV_FILE` to that file's path. For example:
+### B) Backend
 
 ```powershell
-$env:APP_ENV_FILE = '.env.production'
-docker compose --env-file .env.production -p nashaa-production -f docker-compose.production.yml up -d --build --wait
+cd backend
+python -m venv .venv
+.venv\Scripts\Activate.ps1     # Windows PowerShell
+pip install -r requirements.txt
 ```
 
-Development and production use different Compose project names and independent volumes. Production has no source mounts or reload process, runs app containers as non-root, forces demo seeding/token exposure off, and does not publish PostgreSQL or FastAPI ports. Next.js proxies `/api` to the backend service. Put an HTTPS reverse proxy in front of localhost:3000 and apply deployment-level request limits. TLS termination and real SMTP/AI accounts belong to the deployment environment.
+Copy `backend/.env.example` to `backend/.env` and edit it:
 
-Provision a real administrator from the trusted operator terminal:
+- `DATABASE_URL` → point to your local PostgreSQL (use `localhost` as host,
+  not `database`).
+- Set `SECRET_KEY` to any long random string.
+- Keep `AI_PROVIDER=mock` for a quick start.
+
+Then run the migrations and start the API:
 
 ```powershell
-docker compose -p nashaa-production -f docker-compose.production.yml exec backend python -m app.create_admin
+alembic upgrade head
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Passwords are entered through a hidden prompt. `.env` files and backups are ignored by Git and excluded from image build contexts. Never copy production secrets into frontend variables.
+API docs will be at http://localhost:8000/api/docs.
 
-## Backup and restore
+### C) Frontend
 
-Back up before upgrading an existing database. On Windows, use the binary-safe helper:
-
-```powershell
-./scripts/backup-db.ps1
-# Production: ./scripts/backup-db.ps1 -ComposeFile docker-compose.production.yml -Project nashaa-production
-```
-
-Store another encrypted copy outside the Docker host. To verify a backup, restore into a NEW database, keeping the source intact (substitute your backup path and database user):
-
-```powershell
-docker compose cp .backups/nashaa-TIMESTAMP.dump database:/tmp/restore.dump
-docker compose exec database createdb -U nashaa nashaa_restore
-docker compose exec database pg_restore --exit-on-error -U nashaa -d nashaa_restore /tmp/restore.dump
-docker compose exec database psql -U nashaa -d nashaa_restore -c "SELECT count(*) FROM users"
-```
-
-Then start a separately configured backend against the restored database, run migrations, and verify accounts/ideas/assessments before switching service configuration. A schema downgrade does not recover removed column values; use the pre-upgrade archive for full recovery. Avoid binary shell redirection in Windows PowerShell; use container files and `docker compose cp`.
-
-Existing databases at `0001_initial` upgrade forward to `0002_sprint1_only`. Historical migration semantics are retained with frozen enums. Do not blindly `stamp head` on an unversioned database: back it up, compare its schema with `0001_initial`, and adopt that revision only after confirming equivalence.
-
-## Development and validation
-
-Source: `frontend/` (Next.js/TypeScript), `backend/` (FastAPI/SQLAlchemy/PostgreSQL). Tests use a separate disposable `nashaa_test` database, built with the real migrations. Never point the test suite at a production database server.
+Open a **new** terminal:
 
 ```powershell
 cd frontend
 npm ci
-npm run check
-npm run build
+npm run dev
 ```
 
-The approved palette, Poppins typography, original bilingual outlined logos, tagline, icon and favicon are retained. Shared components implement focus states, labeled controls, responsive layout and reduced-motion support. See `docs/interface-guide.md`, `docs/erd.md`, and `docs/sprint1.md`. `Nashaa_Guide.md` remains the unchanged full project reference.
+Open http://localhost:3000.
+
+---
+
+## How the code is organized
+
+```
+Nashaa/
+├─ backend/      FastAPI + SQLAlchemy + PostgreSQL  (Python)
+│  ├─ app/        source code
+│  ├─ migrations/ Alembic database migrations
+│  └─ tests/      pytest tests
+├─ frontend/     Next.js + TypeScript + Tailwind
+│  ├─ app/        pages
+│  ├─ components/ reusable UI
+│  └─ lib/        API client, auth, types
+├─ docs/         design notes, ERD, sprint docs
+├─ scripts/      backup + smoke-test helpers
+├─ docker-compose.yml          local dev stack
+└─ docker-compose.production.yml  production stack (no source mounts)
+```
+
+---
+
+## Running the tests
+
+With Docker:
+
+```powershell
+docker compose exec backend pytest -p no:cacheprovider
+docker compose exec frontend npm run check
+```
+
+Tests use a separate `nashaa_test` database, so they won't touch your demo data.
+Never point the test suite at a real/production database.
+
+---
+
+## Troubleshooting
+
+- **Port already in use?** Something else is using 3000, 5432, or 8000. Stop it,
+  or change the port in `.env` (`FRONTEND_PORT`, `DATABASE_PORT`, `BACKEND_PORT`).
+- **`docker compose` not found?** Install Docker Desktop and make sure
+  "Use Compose v2" is on.
+- **First `up` is slow?** That's normal — it's building images. Later runs are
+  fast.
+- **Frontend shows API errors?** Check the backend is healthy:
+  http://localhost:8000/health, and look at `docker compose logs backend`.
+- **Reset link not showing?** You forgot to set `EXPOSE_RESET_TOKENS=true` in
+  `.env`, then run `docker compose up -d --wait` again.
+
+---
+
+## Notes for production
+
+This README is for running the project on your own PC. For a real deployment,
+use `docker-compose.production.yml`, put it behind HTTPS, set a strong
+PostgreSQL password, real SMTP, and a real `SECRET_KEY`. See `Nashaa_Guide.md`
+for the full reference.
