@@ -14,6 +14,7 @@ export interface User {
   email: string;
   role: Role;
   account_status: AccountStatus;
+  verification_status: "unverified" | "pending" | "approved" | "rejected";
   created_at: string;
   updated_at: string;
 }
@@ -42,6 +43,14 @@ export interface MeResponse {
 }
 
 export interface BusinessIdea {
+  industry_detail: string;
+  business_model: string;
+  value_proposition: string;
+  revenue_model: string;
+  market_opportunity: string;
+  competition: string;
+  cost_structure: string;
+  growth_strategy: string;
   id: string;
   owner_id: string;
   name: string;
@@ -73,6 +82,7 @@ export interface BusinessIdeaSummary {
 }
 
 export interface Assessment {
+  provider: "mock" | "gemini" | "unknown";
   id: string;
   idea_id: string;
   idea_revision: number;

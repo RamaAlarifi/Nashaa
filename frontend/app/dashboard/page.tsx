@@ -64,6 +64,13 @@ export default function DashboardPage() {
           </ButtonLink>
         )}
       </div>
+      <Card className="flex flex-wrap items-center gap-4 p-5">
+        {(dashboard.role === "business_owner" || dashboard.role === "innovator") && <ButtonLink href="/challenges" variant="secondary">{owner ? "Manage challenges" : "Discover challenges"}</ButtonLink>}
+        {dashboard.role === "innovator" && <ButtonLink href="/proposals" variant="secondary">My proposals</ButtonLink>}
+        {dashboard.role === "investor" && <ButtonLink href="/investments" variant="secondary">Investment workspace</ButtonLink>}
+        <ButtonLink href="/verification" variant="secondary">{dashboard.role === "admin" ? "Review verification" : "Account verification"}</ButtonLink>
+        {dashboard.role !== "admin" && <ButtonLink href="/messages" variant="secondary">Messages</ButtonLink>}
+      </Card>
       {owner && (
         <>
           <section className="dashboard-hero">

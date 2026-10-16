@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IndustryLabel } from "@/lib/industries";
 import { Badge } from "./Badge";
 import { Icon } from "./Icon";
 import {
@@ -39,7 +40,7 @@ export function IdeaCard({
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-xs font-medium text-muted-light">
-          {idea.industry || "Industry not set"}
+          <IndustryLabel value={idea.industry} />
         </p>
         <h3 className="mt-1 break-words text-lg font-semibold group-hover:text-brand-700">
           {idea.name}

@@ -9,6 +9,7 @@ from app.config import get_settings
 from app.core.deps import _extract_bearer_token, get_current_user
 from app.database import get_db
 from app.models.user import User
+from app.models.enums import AccountStatus
 from app.schemas.auth import (
     AuthOut,
     LoginIn,
@@ -63,6 +64,8 @@ def login(payload: LoginIn, db: Session = Depends(get_db)):
         user = auth_service.authenticate(db, email=payload.email, password=payload.password)
     except InvalidCredentials as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc))
+    if user.account_status != AccountStatus.ACTIVE:
+        raise HTTPException(status_code=403, detail="This account is not active.")
     _, token = auth_service.create_session(db, user)
     return _auth_out(user, token)
 

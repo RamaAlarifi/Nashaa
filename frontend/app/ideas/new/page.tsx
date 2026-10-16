@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/Button";
@@ -13,14 +13,22 @@ import {
 import { Alert } from "@/components/States";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useIndustries } from "@/lib/industries";
 
 export default function NewIdeaPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const { categories, loading: industriesLoading } = useIndustries();
   const [values, setValues] = useState<IdeaFormValues>(EMPTY_IDEA);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [topError, setTopError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (industriesLoading) return;
+    const industry = String(profile?.role_specific_info.industry ?? "");
+    const known = categories.some(c => c.id === industry);
+    if (industry) setValues(v => v.industry ? v : { ...v, industry: known ? industry : "", industry_detail: String(profile?.role_specific_info.industry_detail ?? (known ? "" : industry)) });
+  }, [profile, categories, industriesLoading]);
 
   function update<K extends keyof IdeaFormValues>(
     key: K,

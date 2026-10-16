@@ -6,6 +6,7 @@ from app.models.password_reset import PasswordReset
 from app.models.profile import Profile
 from app.models.session import Session
 from app.models.user import User
+from app.models import opportunities  # Register Sprint 2 tables with Alembic.
 
 __all__ = [
     "Assessment",

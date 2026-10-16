@@ -1,10 +1,19 @@
 "use client";
 
 import { Input, Select, TextArea } from "@/components/Input";
+import { IndustrySelect } from "@/components/IndustrySelect";
 import type { BusinessIdea, BusinessStage, IdeaVisibility } from "@/lib/types";
 import { STAGE_LABELS, VISIBILITY_LABELS } from "@/lib/types";
 
 export interface IdeaFormValues {
+  industry_detail: string;
+  business_model: string;
+  value_proposition: string;
+  revenue_model: string;
+  market_opportunity: string;
+  competition: string;
+  cost_structure: string;
+  growth_strategy: string;
   name: string;
   problem: string;
   solution: string;
@@ -18,6 +27,8 @@ export interface IdeaFormValues {
 }
 
 export const EMPTY_IDEA: IdeaFormValues = {
+  industry_detail: "", business_model: "", value_proposition: "", revenue_model: "",
+  market_opportunity: "", competition: "", cost_structure: "", growth_strategy: "",
   name: "",
   problem: "",
   solution: "",
@@ -32,6 +43,10 @@ export const EMPTY_IDEA: IdeaFormValues = {
 
 export function ideaToForm(idea: BusinessIdea): IdeaFormValues {
   return {
+    industry_detail: idea.industry_detail ?? "", business_model: idea.business_model ?? "",
+    value_proposition: idea.value_proposition ?? "", revenue_model: idea.revenue_model ?? "",
+    market_opportunity: idea.market_opportunity ?? "", competition: idea.competition ?? "",
+    cost_structure: idea.cost_structure ?? "", growth_strategy: idea.growth_strategy ?? "",
     name: idea.name,
     problem: idea.problem,
     solution: idea.solution,
@@ -101,7 +116,7 @@ export function IdeaForm({ values, errors, onChange }: Props) {
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input
+        <IndustrySelect
           label="Industry"
           name="industry"
           value={values.industry}
@@ -123,6 +138,7 @@ export function IdeaForm({ values, errors, onChange }: Props) {
           ))}
         </Select>
       </div>
+      <Input label="Industry specialisation (optional)" name="industry_detail" maxLength={240} value={values.industry_detail} error={errors.industry_detail} hint="For example, reusable packaging for restaurants." onChange={e => onChange("industry_detail", e.target.value)} />
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
           label="Target location"
@@ -155,6 +171,19 @@ export function IdeaForm({ values, errors, onChange }: Props) {
         error={errors.current_challenges}
         onChange={(e) => onChange("current_challenges", e.target.value)}
       />
+      <details className="rounded-xl border border-navy/15 p-5" open>
+        <summary className="cursor-pointer font-semibold">Business model and plan details (optional)</summary>
+        <p className="my-4 text-sm text-muted-light">Add what you know. Leave unknown details empty so the assessment can identify gaps rather than assume facts. Label estimates and state the source of any market claims.</p>
+        <div className="space-y-4">{([
+          ["business_model", "Business model", "How the business operates, delivers its offer and serves customers."],
+          ["value_proposition", "Value proposition", "Why these customers would choose this offer over alternatives."],
+          ["revenue_model", "Revenue model", "Who pays, how pricing works and any assumptions about sales or recurring revenue."],
+          ["market_opportunity", "Market opportunity and evidence", "Describe the opportunity and any observations, research or sources you actually have."],
+          ["competition", "Competition and alternatives", "Known competitors, customer alternatives and your proposed difference."],
+          ["cost_structure", "Costs and operating requirements", "Known setup and ongoing costs, suppliers, capacity and any financial estimates."],
+          ["growth_strategy", "Growth strategy", "How you intend to attract, retain and serve more customers."],
+        ] as const).map(([key, label, hint]) => <TextArea key={key} label={label} name={key} hint={hint} rows={3} maxLength={6000} value={values[key]} error={errors[key]} onChange={e => onChange(key, e.target.value)} />)}</div>
+      </details>
       <div className="border-b border-navy/10 pb-4 pt-4">
         <p className="eyebrow text-brand-700">03 / Your choice</p>
         <h2 className="mt-2 text-lg font-semibold">Choose who can see it.</h2>

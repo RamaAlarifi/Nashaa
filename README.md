@@ -4,9 +4,10 @@ Nashaa is a web app where a business owner can save their idea, ask the AI to
 assess it, and share a short summary. Innovators and investors get their own
 dashboards and profiles, and an admin can manage accounts.
 
-This is our **Sprint 1** build (user stories US01–US08): sign up, login,
-password recovery, profiles, role dashboards, business ideas, AI assessments,
-and idea visibility.
+This build includes **Sprint 1 and Sprint 2** (US01–US16): account access,
+profiles, ideas and assessments, challenges, verification, proposals, collaborator
+selection, authorised text messaging, investor matching, and explicit
+owner-approved assessment sharing.
 
 ---
 
@@ -194,31 +195,15 @@ Open http://localhost:3000.
 Nashaa/
 ├─ backend/      FastAPI + SQLAlchemy + PostgreSQL  (Python)
 │  ├─ app/        source code
-│  ├─ migrations/ Alembic database migrations
-│  └─ tests/      pytest tests
+│  └─ migrations/ Alembic database migrations
 ├─ frontend/     Next.js + TypeScript + Tailwind
 │  ├─ app/        pages
 │  ├─ components/ reusable UI
 │  └─ lib/        API client, auth, types
-├─ docs/         design notes, ERD, sprint docs
-├─ scripts/      backup + smoke-test helpers
+├─ docs/         design notes, ERD, interface guide
 ├─ docker-compose.yml          local dev stack
 └─ docker-compose.production.yml  production stack (no source mounts)
 ```
-
----
-
-## Running the tests
-
-With Docker:
-
-```powershell
-docker compose exec backend pytest -p no:cacheprovider
-docker compose exec frontend npm run check
-```
-
-Tests use a separate `nashaa_test` database, so they won't touch your demo data.
-Never point the test suite at a real/production database.
 
 ---
 

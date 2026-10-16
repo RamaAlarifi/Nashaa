@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Input, Select, TextArea } from "@/components/Input";
+import { IndustrySelect } from "@/components/IndustrySelect";
 import { Alert, ErrorState, Spinner } from "@/components/States";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -54,13 +55,13 @@ export default function ProfilePage() {
     setSuccess(false);
     setErrors({});
     try {
-      await api.updateProfile({
+      setForm(await api.updateProfile({
         display_name: form.display_name,
         location: form.location,
         short_description: form.short_description,
         profile_visibility: form.profile_visibility,
         role_specific_info: form.role_specific_info,
-      });
+      }));
       setSuccess(true);
       await refresh();
     } catch (err) {
@@ -121,11 +122,14 @@ export default function ProfilePage() {
             onChange={(e) => update("short_description", e.target.value)}
           />
           {user && ({
-            business_owner: [["business_name", "Business name"], ["industry", "Industry"]],
+            business_owner: [["business_name", "Business name"], ["industry", "Industry"], ["industry_detail", "Industry specialisation (optional)"]],
             innovator: [["skills", "Skills"], ["experience", "Professional experience"]],
             investor: [["investment_interests", "Investment interests"], ["preferred_stage", "Preferred business stage"]],
             admin: [],
           }[user.role]).map(([key, label]) => (
+            key === "industry" ? <IndustrySelect key={key} label={label} name={key}
+              value={String(form?.role_specific_info[key] ?? "")} error={errors["role_specific_info.industry"]}
+              onChange={e => update("role_specific_info", { ...form?.role_specific_info, industry: e.target.value })} /> :
             <Input key={key} label={label} name={key} maxLength={2000}
               value={String(form?.role_specific_info[key] ?? "")}
               onChange={(e) => update("role_specific_info", { ...form?.role_specific_info, [key]: e.target.value })} />

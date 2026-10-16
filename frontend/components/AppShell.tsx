@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { NavBar } from "./NavBar";
-import { Spinner } from "./States";
+import { ErrorState, Spinner } from "./States";
+import { getToken } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
 const BARE_PATHS = new Set([
@@ -17,12 +18,13 @@ const BARE_PATHS = new Set([
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { loading, user } = useAuth();
+  const { loading, user, refresh } = useAuth();
   const isBare = BARE_PATHS.has(pathname);
   useEffect(() => {
-    if (!isBare && !loading && !user) router.replace("/login");
+    if (!isBare && !loading && !user && !getToken()) router.replace("/login");
   }, [isBare, loading, user, router]);
   if (isBare) return <main id="main-content">{children}</main>;
+  if (!loading && !user && getToken()) return <main className="flex min-h-screen items-center justify-center p-6"><ErrorState message="Your session could not be checked. Please retry when the server is available." onRetry={refresh} /></main>;
   if (loading || !user)
     return (
       <main className="flex min-h-screen items-center justify-center">
@@ -44,6 +46,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 ? "Business ideas"
                 : pathname === "/profile"
                   ? "Profile"
+                  : pathname.startsWith("/challenges") ? "Challenges"
+                  : pathname === "/proposals" ? "My proposals"
+                  : pathname === "/verification" ? "Verification"
+                  : pathname === "/messages" ? "Messages"
+                  : pathname === "/investments" ? "Investments"
+                  : pathname.startsWith("/people") ? "Discover people"
+                  : pathname.startsWith("/shared-assessments") ? "Shared assessment"
                   : "Overview"}
             </span>
           </span>

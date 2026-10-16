@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from sqlalchemy import Enum, ForeignKey, String, Text
+from sqlalchemy import CheckConstraint, Enum, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -15,9 +15,11 @@ from app.models.enums import ProfileVisibility
 
 class Profile(Base, UUIDPkMixin, TimestampMixin):
     __tablename__ = "profiles"
+    __table_args__ = (UniqueConstraint("user_id", name="uq_profiles_user_id"), CheckConstraint("contact_preference IN ('open','contact_request','closed')"))
+    contact_preference: Mapped[str] = mapped_column(String(32), default="contact_request", server_default="contact_request")
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False, index=True
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     user: Mapped["User"] = relationship(back_populates="profile")  # type: ignore[name-defined]
 

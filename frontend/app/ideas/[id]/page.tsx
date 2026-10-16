@@ -1,10 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
+import { AssessmentLoading } from "@/components/AssessmentLoading";
 import { Button } from "@/components/Button";
+import { IndustryLabel } from "@/lib/industries";
+import { IdeaOpportunities } from "@/components/IdeaOpportunities";
 import { Card } from "@/components/Card";
 import {
   IdeaForm,
@@ -42,6 +45,8 @@ export default function IdeaDetailPage() {
   const [saving, setSaving] = useState(false);
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const generationPending = useRef(false);
+  const assessmentBusy = generating || Boolean(assessment?.in_progress);
   const [assessError, setAssessError] = useState<string | null>(null);
   const [assessmentLoading, setAssessmentLoading] = useState(true);
 
@@ -106,9 +111,9 @@ export default function IdeaDetailPage() {
     setValues((v) => (v ? { ...v, [key]: value } : v));
   }
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.SyntheticEvent, assess = false) {
     e.preventDefault();
-    if (!values) return;
+    if (!values || saving || assessmentBusy || generationPending.current) return;
     setFormErrors({});
     setTopError(null);
     setSaving(true);
@@ -117,7 +122,8 @@ export default function IdeaDetailPage() {
       setIdea(updated);
       setValues(ideaToForm(updated));
       setEditing(false);
-      await loadAssessment();
+      if (assess) await handleGenerate();
+      else await loadAssessment();
     } catch (err) {
       if (err instanceof ApiError && err.fieldErrors) {
         const map: Record<string, string> = {};
@@ -152,19 +158,20 @@ export default function IdeaDetailPage() {
   }
 
   async function handleGenerate() {
+    if (generationPending.current || assessment?.in_progress) return;
+    generationPending.current = true;
     setAssessError(null);
     setGenerating(true);
     try {
-      const res = await api.generateAssessment(params.id);
-      setAssessment(res);
-      // If a generation just started/succeeded, reload idea (revision may bump).
-      await loadIdea();
-      await loadAssessment();
+      // The returned status already contains the result. Keep the page mounted
+      // rather than reloading the idea and replacing it with a full-page spinner.
+      setAssessment(await api.generateAssessment(params.id));
     } catch (err) {
       setAssessError(
-        err instanceof ApiError ? err.message : "Assessment failed.",
+        err instanceof ApiError ? err.message : "Assessment generation failed. Please try again.",
       );
     } finally {
+      generationPending.current = false;
       setGenerating(false);
     }
   }
@@ -192,7 +199,7 @@ export default function IdeaDetailPage() {
       <h1 className="text-3xl font-semibold">{summary.name}</h1>
       <Alert kind="info" message="The owner has shared this summary with registered users. Detailed planning and assessments remain private." />
       <Card className="space-y-4 p-6">
-        <p><strong>Industry:</strong> {summary.industry || "Not specified"}</p>
+        <p><strong>Industry:</strong> <IndustryLabel value={summary.industry} /></p>
         <p><strong>Stage:</strong> {STAGE_LABELS[summary.business_stage]}</p>
         <p><strong>Location:</strong> {summary.target_location || "Not specified"}</p>
         <p><strong>Intended customers:</strong> {summary.intended_customers || "Not specified"}</p>
@@ -227,7 +234,7 @@ export default function IdeaDetailPage() {
             {idea.name}
           </h1>
           <p className="text-sm text-muted-light">
-            {idea.industry || "No industry"} ·{" "}
+            <IndustryLabel value={idea.industry} /> ·{" "}
             {STAGE_LABELS[idea.business_stage]} · Revision{" "}
             {idea.revision_number}
           </p>
@@ -253,7 +260,7 @@ export default function IdeaDetailPage() {
               <button
                 key={v}
                 type="button"
-                disabled={savingVisibility || editing || generating}
+                disabled={savingVisibility || editing || assessmentBusy}
                 aria-pressed={idea.visibility === v}
                 onClick={() => handleVisibility(v)}
                 className={`rounded-md border px-3 py-1.5 text-sm ${
@@ -276,7 +283,7 @@ export default function IdeaDetailPage() {
             <div className="flex justify-end">
               <Button
                 variant="secondary"
-                disabled={generating || savingVisibility}
+                disabled={assessmentBusy || savingVisibility}
                 onClick={() => setEditing(true)}
               >
                 Edit idea
@@ -305,6 +312,9 @@ export default function IdeaDetailPage() {
               <Button type="submit" loading={saving}>
                 Save changes
               </Button>
+              <Button type="button" loading={saving || generating} onClick={e => handleSave(e, true)}>
+                Save and assess
+              </Button>
             </div>
           </form>
         ) : (
@@ -321,43 +331,48 @@ export default function IdeaDetailPage() {
             </h2>
             <Button
               onClick={handleGenerate}
-              loading={generating}
+              loading={assessmentBusy}
               disabled={
-                generating ||
-                assessment?.in_progress ||
+                assessmentBusy ||
                 editing ||
                 assessmentLoading ||
                 !assessment
               }
             >
-              {assessment?.in_progress
+              {assessmentBusy
                 ? "Generating…"
+                : assessError || assessment?.current_status === "failed"
+                  ? "Retry assessment"
                 : latestValid
                   ? "Regenerate assessment"
                   : "Generate assessment"}
             </Button>
           </div>
 
-          {assessError && (
+          {assessError && !assessmentBusy && (
             <div className="mt-3">
               <Alert message={assessError} />
             </div>
           )}
 
-          {assessError && (
-            <Button variant="ghost" className="mt-3" onClick={loadAssessment}>
+          {assessError && !assessmentBusy && (
+            <Button variant="ghost" className="mt-3" disabled={assessmentBusy} onClick={loadAssessment}>
               Retry assessment status
             </Button>
           )}
-          <AssessmentPanel status={assessment} loading={assessmentLoading} />
+          {latestValid && latestValid.idea_revision !== idea.revision_number && <Alert kind="info" message="This assessment was generated for an earlier revision. Regenerate it to reflect your saved changes." />}
+          {assessmentBusy && <AssessmentLoading />}
+          <AssessmentPanel status={assessment} loading={assessmentLoading} generating={assessmentBusy} />
         </Card>
       )}
+
+      {isOwner && <IdeaOpportunities key={`${idea.visibility}:${idea.revision_number}`} idea={idea} assessment={latestValid} />}
 
       {isOwner && (
         <div className="flex justify-end">
           <Button
             variant="danger"
-            disabled={generating || saving || savingVisibility}
+            disabled={assessmentBusy || saving || savingVisibility}
             onClick={handleDelete}
           >
             Delete idea
@@ -373,12 +388,20 @@ function IdeaReadOnly({ idea }: { idea: BusinessIdea }) {
     <dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
       <Field label="Problem" value={idea.problem} full />
       <Field label="Solution" value={idea.solution} full />
-      <Field label="Industry" value={idea.industry} />
+      <div><dt className="text-xs font-medium uppercase text-muted-light">Industry</dt><dd className="text-sm"><IndustryLabel value={idea.industry} /></dd></div>
+      <Field label="Industry specialisation" value={idea.industry_detail} />
       <Field label="Stage" value={STAGE_LABELS[idea.business_stage]} />
       <Field label="Target location" value={idea.target_location} />
       <Field label="Budget" value={idea.budget} />
       <Field label="Intended customers" value={idea.intended_customers} full />
       <Field label="Current challenges" value={idea.current_challenges} full />
+      <Field label="Business model" value={idea.business_model} full />
+      <Field label="Value proposition" value={idea.value_proposition} full />
+      <Field label="Revenue model" value={idea.revenue_model} full />
+      <Field label="Market opportunity and evidence" value={idea.market_opportunity} full />
+      <Field label="Competition and alternatives" value={idea.competition} full />
+      <Field label="Costs and operating requirements" value={idea.cost_structure} full />
+      <Field label="Growth strategy" value={idea.growth_strategy} full />
       <Field label="Visibility" value={VISIBILITY_LABELS[idea.visibility]} />
     </dl>
   );
@@ -408,9 +431,11 @@ function Field({
 function AssessmentPanel({
   status,
   loading,
+  generating,
 }: {
   status: AssessmentStatusResponse | null;
   loading: boolean;
+  generating: boolean;
 }) {
   if (loading)
     return (
@@ -420,17 +445,7 @@ function AssessmentPanel({
     );
   if (!status) return null;
 
-  if (status.current_status === "in_progress") {
-    return (
-      <div className="mt-4">
-        <Alert
-          kind="info"
-          message="Assessment is being generated. Please wait…"
-        />
-        <Spinner label="Generating assessment…" />
-      </div>
-    );
-  }
+  if (generating && !status.latest_valid) return null;
 
   if (status.current_status === "none") {
     return (
@@ -445,11 +460,13 @@ function AssessmentPanel({
 
   return (
     <div className="mt-4 space-y-4">
-      {status.current_status === "failed" && status.error_message && (
+      {!generating && status.current_status === "failed" && status.error_message && (
         <Alert message={`Last attempt failed: ${status.error_message}`} />
       )}
       {status.latest_valid ? (
-        <div className="space-y-4">
+        <div key={status.latest_valid.id} className="assessment-result space-y-4">
+          {generating && <p className="text-sm text-muted-light">Your previous assessment remains available while the new one is generated.</p>}
+          <p className="text-sm font-medium text-brand-700">{status.latest_valid.provider === "gemini" ? "Gemini business-plan assessment" : status.latest_valid.provider === "mock" ? "Simulated demonstration assessment. Regenerate with Gemini for a real plan review." : "Earlier assessment: provider was not recorded."}</p>
           <p className="text-xs text-muted-light">
             Generated from idea revision {status.latest_valid.idea_revision}
           </p>

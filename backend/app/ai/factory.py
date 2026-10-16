@@ -20,10 +20,7 @@ def get_assessment_provider() -> AssessmentProvider:
         _cached = MockAssessmentProvider()
         return _cached
     if settings.ai_provider == "gemini":
-        # If no key is configured, fall back to mock so the app still runs.
-        if not settings.gemini_api_key:
-            _cached = MockAssessmentProvider()
-            return _cached
+        # A misconfigured real provider must never silently produce simulated output.
         _cached = GeminiAssessmentProvider()
         return _cached
     raise AIServiceError(f"Unknown AI provider: {settings.ai_provider}")

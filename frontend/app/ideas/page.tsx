@@ -9,9 +9,11 @@ import { EmptyState, ErrorState, Spinner } from "@/components/States";
 import { ApiError, api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { STAGE_LABELS, type BusinessIdea } from "@/lib/types";
+import { useIndustries } from "@/lib/industries";
 
 export default function IdeasPage() {
   const { user } = useAuth();
+  const { label: industryLabel } = useIndustries();
   const [ideas, setIdeas] = useState<BusinessIdea[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export default function IdeasPage() {
   const filtered = ideas.filter(
     (idea) =>
       (!stage || idea.business_stage === stage) &&
-      `${idea.name} ${idea.industry}`
+      `${idea.name} ${industryLabel(idea.industry)}`
         .toLowerCase()
         .includes(query.trim().toLowerCase()),
   );

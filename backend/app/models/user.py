@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Enum, String
+from sqlalchemy import CheckConstraint, Enum, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPkMixin
@@ -11,8 +11,10 @@ from app.models.enums import AccountStatus, Role
 
 class User(Base, UUIDPkMixin, TimestampMixin):
     __tablename__ = "users"
+    __table_args__ = (UniqueConstraint("email", name="uq_users_email"), CheckConstraint("verification_status IN ('unverified','pending','approved','rejected')"))
+    verification_status: Mapped[str] = mapped_column(String(32), default="unverified", server_default="unverified")
 
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
 
     role: Mapped[Role] = mapped_column(

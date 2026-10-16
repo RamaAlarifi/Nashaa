@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 
 import { AppShell } from "@/components/AppShell";
 import { AuthProvider } from "@/lib/auth-context";
+import { IndustryProvider } from "@/lib/industries";
 
 import "./globals.css";
 
@@ -43,7 +44,7 @@ export default function RootLayout({
     <html lang="en" className={poppins.variable}>
       <body>
         <AuthProvider>
-          <AppShell>{children}</AppShell>
+          <IndustryProvider><AppShell>{children}</AppShell></IndustryProvider>
         </AuthProvider>
       </body>
     </html>

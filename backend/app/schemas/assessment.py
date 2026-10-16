@@ -18,6 +18,7 @@ class AssessmentOut(BaseModel):
     id: UUID
     idea_id: UUID
     idea_revision: int
+    provider: str = "unknown"
     input_snapshot: dict[str, Any]
     generation_status: AssessmentStatus
     error_message: str | None

@@ -18,5 +18,6 @@ class UserOut(BaseModel):
     email: SafeEmail
     role: Role
     account_status: AccountStatus
+    verification_status: str
     created_at: datetime
     updated_at: datetime

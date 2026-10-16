@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 
-import { api, getToken, setToken } from "./api";
+import { api, ApiError, getToken, setToken } from "./api";
 import type { MeResponse, Profile, User } from "./types";
 
 interface AuthState {
@@ -41,9 +41,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const me: MeResponse = await api.me();
       setState({ user: me.user, profile: me.profile, loading: false });
-    } catch {
-      setToken(null);
-      setState({ user: null, profile: null, loading: false });
+    } catch (error) {
+      if (error instanceof ApiError && [401, 403].includes(error.status)) {
+        setToken(null);
+        setState({ user: null, profile: null, loading: false });
+      } else {
+        // Preserve the session through a temporary outage; a later refresh can retry.
+        setState(current => ({ ...current, loading: false }));
+      }
     }
   }, []);
 

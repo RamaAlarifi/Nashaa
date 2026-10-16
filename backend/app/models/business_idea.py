@@ -32,6 +32,14 @@ class BusinessIdea(Base, UUIDPkMixin, TimestampMixin):
     intended_customers: Mapped[str] = mapped_column(Text, nullable=False, default="")
     budget: Mapped[str] = mapped_column(String(120), nullable=False, default="")
     current_challenges: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    industry_detail: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    business_model: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    value_proposition: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    revenue_model: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    market_opportunity: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    competition: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    cost_structure: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    growth_strategy: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
 
     visibility: Mapped[IdeaVisibility] = mapped_column(
         Enum(IdeaVisibility, native_enum=False, length=32),

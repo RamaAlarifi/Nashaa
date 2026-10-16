@@ -17,6 +17,7 @@ from app.config import get_settings
 from app.database import engine
 from sqlalchemy import text
 from app.routers import assessments, auth, business_ideas, dashboard, profile
+from app.routers import opportunities
 
 logger = logging.getLogger("nashaa")
 
@@ -25,8 +26,8 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
         title="Nashaa API",
-        description="Nashaa AI Platform for Saudi SMEs — Sprint 1",
-        version="0.1.0",
+        description="Nashaa AI Platform for Saudi SMEs — Sprints 1 and 2",
+        version="0.2.0",
         docs_url="/api/docs",
         openapi_url="/api/openapi.json",
     )
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
     app.include_router(dashboard.router)
     app.include_router(business_ideas.router)
     app.include_router(assessments.router)
+    app.include_router(opportunities.router)
 
     @app.get("/api/health", tags=["health"])
     def health() -> dict:

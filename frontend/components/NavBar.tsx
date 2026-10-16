@@ -13,6 +13,12 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Overview", icon: "grid" },
   { href: "/ideas", label: "My ideas", icon: "idea" },
   { href: "/profile", label: "My profile", icon: "user" },
+  { href: "/challenges", label: "Challenges", icon: "idea" },
+  { href: "/proposals", label: "My proposals", icon: "idea" },
+  { href: "/investments", label: "Investments", icon: "grid" },
+  { href: "/verification", label: "Verification", icon: "user" },
+  { href: "/messages", label: "Messages", icon: "user" },
+  { href: "/people", label: "Discover people", icon: "user" },
 ] as const;
 
 export function NavBar() {
@@ -62,7 +68,15 @@ export function NavBar() {
         <p className="eyebrow mb-4 mt-3 px-4 text-navy-100/80">Workspace</p>
         <nav aria-label="Main navigation">
           <ul className="space-y-2">
-            {NAV_ITEMS.filter((item) => item.href !== "/ideas" || user?.role === "business_owner").map(({ href, label, icon }) => {
+            {NAV_ITEMS.filter(item => {
+              if (item.href === "/ideas") return user?.role === "business_owner";
+              if (item.href === "/challenges") return user?.role === "business_owner" || user?.role === "innovator";
+              if (item.href === "/proposals") return user?.role === "innovator";
+              if (item.href === "/investments") return user?.role === "investor";
+              if (item.href === "/messages") return user?.role !== "admin";
+              if (item.href === "/people") return user?.role !== "admin";
+              return true;
+            }).map(({ href, label, icon }) => {
               const active =
                 pathname === href || pathname.startsWith(`${href}/`);
               return (

@@ -5,7 +5,6 @@ same ``.env`` / environment variables drive both the server and the migrations.
 Both offline (``alembic`` SQL generation) and online (direct connection) modes
 are supported.
 
-Tests keep using ``Base.metadata.create_all`` directly (see tests/conftest.py);
 Alembic is the repeatable schema path for development and deployment.
 """
 

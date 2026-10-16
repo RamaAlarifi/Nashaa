@@ -5,7 +5,6 @@ This script creates:
   - 12 fictional Saudi business ideas in different industries and stages,
     with a mix of private / registered visibility and some incomplete ideas
   - successful and failed fictional assessments (US06/US07)
-Password reset edge cases and delayed responses live in the isolated tests.
 
 Run with:
     python -m app.seed.seed
@@ -31,6 +30,7 @@ from app.models.enums import (
 )
 from app.models.user import User
 from app.core.security import hash_password
+from app.industries import canonical
 
 DEFAULT_PASSWORD = "Password123!"
 
@@ -170,7 +170,8 @@ def _create_ideas(db, users: dict[str, User]) -> dict[str, BusinessIdea]:
             name=name,
             problem=problem,
             solution=solution,
-            industry=industry,
+            industry=canonical(industry) or industry,
+            industry_detail=industry,
             business_stage=stage,
             target_location=loc,
             intended_customers=cust,
@@ -204,6 +205,7 @@ def _create_assessments(db, ideas: dict[str, BusinessIdea]) -> None:
     )
     result = mock.generate(inp)
     a1 = Assessment(
+        provider="mock",
         idea_id=idea.id, idea_revision=idea.revision_number,
         input_snapshot={"name": idea.name}, generation_status=AssessmentStatus.SUCCEEDED,
         market_considerations=result.market_considerations,
@@ -224,6 +226,7 @@ def _create_assessments(db, ideas: dict[str, BusinessIdea]) -> None:
     )
     result2 = mock.generate(inp2)
     a2 = Assessment(
+        provider="mock",
         idea_id=idea2.id, idea_revision=idea2.revision_number,
         input_snapshot={"name": idea2.name}, generation_status=AssessmentStatus.SUCCEEDED,
         market_considerations=result2.market_considerations,
@@ -237,6 +240,7 @@ def _create_assessments(db, ideas: dict[str, BusinessIdea]) -> None:
 
     # Failed assessment for QuickRoute (previous attempt; shows a useful message).
     a3 = Assessment(
+        provider="mock",
         idea_id=ideas["QuickRoute"].id, idea_revision=ideas["QuickRoute"].revision_number,
         input_snapshot={"name": "QuickRoute"}, generation_status=AssessmentStatus.FAILED,
         error_message="The AI service is temporarily unavailable. Please try again.",
@@ -245,6 +249,7 @@ def _create_assessments(db, ideas: dict[str, BusinessIdea]) -> None:
 
     # Interrupted fictional attempt; the owner can regenerate immediately.
     a4 = Assessment(
+        provider="mock",
         idea_id=ideas["CareLine"].id, idea_revision=ideas["CareLine"].revision_number,
         input_snapshot={"name": "CareLine"}, generation_status=AssessmentStatus.FAILED,
         error_message="Fictional interrupted attempt. Generate an assessment to continue.",

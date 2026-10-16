@@ -22,6 +22,14 @@ class BusinessIdeaBase(BaseModel):
     intended_customers: str = ""
     budget: str = Field(default="", max_length=120)
     current_challenges: str = ""
+    industry_detail: str = Field(default="", max_length=240)
+    business_model: str = Field(default="", max_length=6000)
+    value_proposition: str = Field(default="", max_length=6000)
+    revenue_model: str = Field(default="", max_length=6000)
+    market_opportunity: str = Field(default="", max_length=6000)
+    competition: str = Field(default="", max_length=6000)
+    cost_structure: str = Field(default="", max_length=6000)
+    growth_strategy: str = Field(default="", max_length=6000)
     visibility: IdeaVisibility = IdeaVisibility.PRIVATE
 
 
@@ -48,6 +56,14 @@ class BusinessIdeaUpdate(BaseModel):
     intended_customers: str | None = None
     budget: str | None = Field(default=None, max_length=120)
     current_challenges: str | None = None
+    industry_detail: str | None = Field(default=None, max_length=240)
+    business_model: str | None = Field(default=None, max_length=6000)
+    value_proposition: str | None = Field(default=None, max_length=6000)
+    revenue_model: str | None = Field(default=None, max_length=6000)
+    market_opportunity: str | None = Field(default=None, max_length=6000)
+    competition: str | None = Field(default=None, max_length=6000)
+    cost_structure: str | None = Field(default=None, max_length=6000)
+    growth_strategy: str | None = Field(default=None, max_length=6000)
     visibility: IdeaVisibility | None = None
 
 
@@ -69,6 +85,14 @@ class BusinessIdeaOut(BaseModel):
     intended_customers: str
     budget: str
     current_challenges: str
+    industry_detail: str
+    business_model: str
+    value_proposition: str
+    revenue_model: str
+    market_opportunity: str
+    competition: str
+    cost_structure: str
+    growth_strategy: str
     visibility: IdeaVisibility
     revision_number: int
     created_at: datetime

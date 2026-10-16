@@ -75,21 +75,21 @@ def dashboard(user: User = Depends(get_current_user), db: Session = Depends(get_
         return DashboardOut(
             role=user.role,
             display_name=display_name,
-            message="Manage your professional profile, skills, and experience.",
+            message="Discover published challenges, submit verified proposals, and communicate with relevant business owners.",
         )
 
     if user.role == Role.INVESTOR:
         return DashboardOut(
             role=user.role,
             display_name=display_name,
-            message="Manage your investor profile and investment interests.",
+            message="Maintain investment preferences and history, review ranked projects, and read assessments explicitly shared with you.",
         )
 
     if user.role == Role.ADMIN:
         return DashboardOut(
             role=user.role,
             display_name=display_name,
-            message="Manage your administrator account and profile.",
+            message="Review account verification requests and record approval or rejection decisions.",
         )
 
     return DashboardOut(role=user.role, display_name=display_name)

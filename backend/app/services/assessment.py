@@ -19,6 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai import AIServiceError, AssessmentInput, get_assessment_provider
+from app.ai.base import AIConfigurationError, AIQuotaError, AIUnavailableError, AITimeoutError
 from app.config import get_settings
 from app.models.assessment import Assessment
 from app.models.business_idea import BusinessIdea
@@ -39,6 +40,7 @@ def _idea_to_input(idea: BusinessIdea) -> AssessmentInput:
         intended_customers=idea.intended_customers,
         budget=idea.budget,
         current_challenges=idea.current_challenges,
+        **{key: getattr(idea, key) for key in ("industry_detail", "business_model", "value_proposition", "revenue_model", "market_opportunity", "competition", "cost_structure", "growth_strategy")},
     )
 
 
@@ -54,6 +56,7 @@ def _input_snapshot(idea: BusinessIdea) -> dict:
         "budget": idea.budget,
         "current_challenges": idea.current_challenges,
         "revision_number": idea.revision_number,
+        **{key: getattr(idea, key) for key in ("industry_detail", "business_model", "value_proposition", "revenue_model", "market_opportunity", "competition", "cost_structure", "growth_strategy")},
     }
 
 
@@ -110,7 +113,7 @@ def generate_assessment(db: Session, idea_id: uuid.UUID, user: User) -> Assessme
 
     # Lock the idea row to serialize concurrent assessment requests for it.
     idea = db.execute(
-        select(BusinessIdea).where(BusinessIdea.id == idea_id).with_for_update()
+        select(BusinessIdea).where(BusinessIdea.id == idea_id).execution_options(populate_existing=True).with_for_update()
     ).scalar_one_or_none()
     if idea is None:
         raise IdeaNotFound("Business idea not found.")
@@ -141,6 +144,7 @@ def generate_assessment(db: Session, idea_id: uuid.UUID, user: User) -> Assessme
     ai_input = _idea_to_input(idea)
     snapshot = _input_snapshot(idea)
     assessment = Assessment(
+        provider=settings.ai_provider,
         idea_id=idea.id,
         idea_revision=idea.revision_number,
         input_snapshot=snapshot,
@@ -160,6 +164,14 @@ def generate_assessment(db: Session, idea_id: uuid.UUID, user: User) -> Assessme
     except Exception as exc:
         assessment.generation_status = AssessmentStatus.FAILED
         assessment.error_message = "Assessment generation failed. Please try again. Your last successful assessment is preserved."
+        if isinstance(exc, AIUnavailableError):
+            assessment.error_message = "The AI assessment service is temporarily unavailable or experiencing high demand. Please try again later. Any previous successful assessment remains saved."
+        elif isinstance(exc, AITimeoutError):
+            assessment.error_message = "The AI assessment service took too long to respond. Please try again. Any previous successful assessment remains saved."
+        elif isinstance(exc, AIQuotaError):
+            assessment.error_message = "The assessment service has no available generation quota. Try again after the service quota is restored. Any previous successful assessment remains saved."
+        elif isinstance(exc, AIConfigurationError):
+            assessment.error_message = "The assessment service is not configured correctly. Please contact the platform administrator. Any previous successful assessment remains saved."
         db.commit()
         db.refresh(assessment)
         return assessment

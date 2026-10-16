@@ -250,3 +250,16 @@ p {
     transform: none;
   }
 }
+
+/* Indeterminate assessment feedback; transform/opacity keep animation light. */
+@media (prefers-reduced-motion: no-preference) {
+  .assessment-orbit { animation: assessment-orbit 2.8s linear infinite; }
+  .assessment-sweep { animation: assessment-sweep 2s ease-in-out infinite alternate; }
+  .assessment-message { animation: enter 240ms ease-out both; }
+  .assessment-result { animation: enter 300ms ease-out both; }
+}
+@keyframes assessment-orbit { to { transform: rotate(360deg); } }
+@keyframes assessment-sweep {
+  from { transform: translateX(-30%); }
+  to { transform: translateX(230%); }
+}

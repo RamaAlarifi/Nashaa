@@ -35,16 +35,13 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 
 # Copy only what the server needs: the app, migrations, alembic config, and
-# the startup entrypoint. Tests, .env, .venv, caches, and .git are excluded
-# via .dockerignore.
+# the startup entrypoint. .env, .venv, caches, and .git are excluded via
+# .dockerignore.
 COPY alembic.ini ./
 COPY migrations ./migrations
 COPY app ./app
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/docker-entrypoint.sh
-
-COPY tests ./tests
-COPY pytest.ini ./
 
 USER nashaa
 

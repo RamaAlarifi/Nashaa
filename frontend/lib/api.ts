@@ -99,6 +99,10 @@ async function request<T>(
 
 // ---------- Auth ----------
 export const api = {
+  // Sprint 2 shares the same token, validation and network-error handling.
+  opportunity<T>(path: string, method = "GET", body?: unknown) {
+    return request<T>(`/api${path}`, { method, body });
+  },
   register(email: string, password: string, role: string, displayName: string) {
     return request<AuthResponse>("/api/auth/register", {
       method: "POST",

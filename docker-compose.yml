@@ -86,6 +86,8 @@ services:
       BACKEND_URL: http://backend:8000
       NEXT_PUBLIC_API_BASE: "" # same-origin; the dev server proxies /api/*
       NODE_ENV: development
+      # Windows bind mounts can miss change events; poll so the UI uses current source.
+      WATCHPACK_POLLING: "1000"
     depends_on:
       backend:
         condition: service_healthy

@@ -5,6 +5,8 @@ from __future__ import annotations
 import uuid
 
 from sqlalchemy import select
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.business_idea import BusinessIdea
@@ -16,6 +18,7 @@ from app.schemas.business_idea import (
     VisibilityUpdate,
 )
 from app.services.errors import IdeaNotFound, NotOwner, VisibilityBlocked
+from app.industries import validate_industry
 
 # Fields whose change means the assessment is out of date and the idea's
 # revision number must increment (US05/US07).
@@ -29,11 +32,18 @@ ASSESSMENT_RELATED_FIELDS = (
     "intended_customers",
     "budget",
     "current_challenges",
+    "industry_detail", "business_model", "value_proposition", "revenue_model",
+    "market_opportunity", "competition", "cost_structure", "growth_strategy",
 )
 
 
 def create_idea(db: Session, owner: User, payload: BusinessIdeaCreate) -> BusinessIdea:
-    idea = BusinessIdea(owner_id=owner.id, **payload.model_dump())
+    values = payload.model_dump()
+    original_industry = values["industry"]
+    values["industry"] = validate_industry(values["industry"])
+    if original_industry and original_industry != values["industry"] and not values["industry_detail"]:
+        values["industry_detail"] = original_industry
+    idea = BusinessIdea(owner_id=owner.id, **values)
     db.add(idea)
     db.commit()
     db.refresh(idea)
@@ -41,7 +51,7 @@ def create_idea(db: Session, owner: User, payload: BusinessIdeaCreate) -> Busine
 
 
 def _get_owned_idea(db: Session, idea_id: uuid.UUID, user: User) -> BusinessIdea:
-    idea = db.get(BusinessIdea, idea_id)
+    idea = db.scalar(select(BusinessIdea).where(BusinessIdea.id == idea_id).execution_options(populate_existing=True).with_for_update())
     if idea is None:
         raise IdeaNotFound("Business idea not found.")
     if idea.owner_id != user.id:
@@ -104,6 +114,8 @@ def update_idea(
 ) -> BusinessIdea:
     idea = _get_owned_idea(db, idea_id, user)
     changes = payload.model_dump(exclude_unset=True)
+    if "industry" in changes:
+        changes["industry"] = validate_industry(changes["industry"], idea.industry)
     if not changes:
         return idea
 
@@ -116,6 +128,10 @@ def update_idea(
     if assessment_related_changed:
         idea.revision_number += 1
 
+    if idea.visibility == IdeaVisibility.PRIVATE:
+        from app.services.investment import revoke_idea_shares
+        revoke_idea_shares(db, idea.id)
+
     db.commit()
     db.refresh(idea)
     return idea
@@ -126,6 +142,9 @@ def update_visibility(
 ) -> BusinessIdea:
     idea = _get_owned_idea(db, idea_id, user)
     idea.visibility = payload.visibility
+    if idea.visibility == IdeaVisibility.PRIVATE:
+        from app.services.investment import revoke_idea_shares
+        revoke_idea_shares(db, idea.id)
     db.commit()
     db.refresh(idea)
     return idea
@@ -134,4 +153,8 @@ def update_visibility(
 def delete_idea(db: Session, idea_id: uuid.UUID, user: User) -> None:
     idea = _get_owned_idea(db, idea_id, user)
     db.delete(idea)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "This idea has opportunity or sharing records. Keep it private instead of deleting its history.")

@@ -42,16 +42,6 @@ env/
 ENV/
 backend/.venv/
 
-# Python testing
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-.tox/
-.nox/
-coverage.xml
-*.cover
-
 # ---------- Node / Next.js ----------
 node_modules/
 .pnp

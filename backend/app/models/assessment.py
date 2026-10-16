@@ -21,6 +21,7 @@ from app.models.enums import AssessmentStatus
 
 class Assessment(Base, UUIDPkMixin, TimestampMixin):
     __tablename__ = "assessments"
+    provider: Mapped[str] = mapped_column(String(16), nullable=False, default="unknown", server_default="unknown")
 
     # Monotonic insertion order. Within a single database transaction now() is
     # constant, so created_at alone cannot order assessment attempts reliably

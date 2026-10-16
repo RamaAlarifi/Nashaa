@@ -13,12 +13,24 @@ class AIServiceError(Exception):
     """Base error for any AI provider failure (network, HTTP, parsing)."""
 
 
+class AIUnavailableError(AIServiceError):
+    """The provider is temporarily unavailable or overloaded."""
+
+
 class AITimeoutError(AIServiceError):
     """The AI provider did not respond in time."""
 
 
 class AIResponseError(AIServiceError):
     """The AI provider returned a response we could not parse or validate."""
+
+
+class AIConfigurationError(AIServiceError):
+    """Missing or invalid server configuration; never substitute simulated output."""
+
+
+class AIQuotaError(AIServiceError):
+    """The provider rejected generation because quota is unavailable."""
 
 
 class AssessmentInput(BaseModel):
@@ -33,6 +45,14 @@ class AssessmentInput(BaseModel):
     intended_customers: str
     budget: str
     current_challenges: str
+    industry_detail: str = ""
+    business_model: str = ""
+    value_proposition: str = ""
+    revenue_model: str = ""
+    market_opportunity: str = ""
+    competition: str = ""
+    cost_structure: str = ""
+    growth_strategy: str = ""
 
 
 class AssessmentResult(BaseModel):
