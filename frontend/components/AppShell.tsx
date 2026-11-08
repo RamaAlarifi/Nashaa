@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { NavBar } from "./NavBar";
 import { ErrorState, Spinner } from "./States";
 import { getToken } from "@/lib/api";
@@ -14,6 +15,26 @@ const BARE_PATHS = new Set([
   "/forgot-password",
   "/reset-password",
 ]);
+
+const SECTION_TITLES: [string, string][] = [
+  ["/ideas", "Business ideas"],
+  ["/profile", "Profile"],
+  ["/challenges", "Challenges"],
+  ["/proposals", "My proposals"],
+  ["/verification", "Verification"],
+  ["/messages", "Messages"],
+  ["/investments", "Investments"],
+  ["/collaborations", "Collaborations"],
+  ["/leads", "Saved leads"],
+  ["/admin", "Administration"],
+  ["/reports", "My reports"],
+  ["/people", "Discover people"],
+  ["/shared-assessments", "Shared assessment"],
+];
+
+function sectionTitle(pathname: string) {
+  return SECTION_TITLES.find(([href]) => pathname === href || pathname.startsWith(`${href}/`))?.[1] ?? "Overview";
+}
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -39,25 +60,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <NavBar />
       <div className="flex min-w-0 flex-col">
         <div className="workspace-topbar">
-          <span>
-            Workspace <span className="mx-3 text-navy/25">/</span>{" "}
-            <span className="font-medium text-navy">
-              {pathname.startsWith("/ideas")
-                ? "Business ideas"
-                : pathname === "/profile"
-                  ? "Profile"
-                  : pathname.startsWith("/challenges") ? "Challenges"
-                  : pathname === "/proposals" ? "My proposals"
-                  : pathname === "/verification" ? "Verification"
-                  : pathname === "/messages" ? "Messages"
-                  : pathname === "/investments" ? "Investments"
-                  : pathname.startsWith("/people") ? "Discover people"
-                  : pathname.startsWith("/shared-assessments") ? "Shared assessment"
-                  : "Overview"}
+          <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2">
+            <Link href="/dashboard" className="hidden rounded text-muted-light transition-colors hover:text-navy sm:inline">
+              Workspace
+            </Link>
+            <svg viewBox="0 0 24 24" className="hidden h-3.5 w-3.5 text-navy/25 sm:block" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+            <span className="truncate text-[0.8125rem] font-semibold text-navy" aria-current="page">
+              {sectionTitle(pathname)}
             </span>
-          </span>
-          <span className="hidden items-center gap-2 sm:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+          </nav>
+          <span className="pill hidden !bg-white/60 sm:inline-flex">
+            <span className="relative flex h-2 w-2" aria-hidden="true">
+              <span className="absolute inset-0 animate-ping rounded-full bg-brand-500/40 motion-reduce:hidden" />
+              <span className="relative h-2 w-2 rounded-full bg-brand-500" />
+            </span>
             From idea to opportunity
           </span>
         </div>
@@ -66,7 +82,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {children}
           </div>
         </main>
-        <footer className="mx-6 flex flex-wrap justify-between gap-2 border-t border-navy/10 py-5 text-xs text-muted-light lg:mx-10">
+        <footer className="mx-auto flex w-full max-w-[80rem] flex-wrap justify-between gap-2 border-t border-navy/[0.08] px-5 py-6 text-xs text-muted-light sm:px-6 lg:px-10">
           <span>Nashaa · Built for what comes next.</span>
           <span>Demonstration data is fictional.</span>
         </footer>

@@ -82,3 +82,7 @@ pnpm-debug.log*
 
 .env.*
 !.env.example
+
+# Database archives contain private records; never commit them.
+backups/
+*.dump

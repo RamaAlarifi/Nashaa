@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { Input, Select, TextArea } from "./Input";
 import { Button } from "./Button";
@@ -27,7 +27,7 @@ export function useResource<T>(path: string | null) {
 }
 
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return <Card className="space-y-5 p-5 sm:p-7"><h2 className="text-lg font-semibold text-navy">{title}</h2>{children}</Card>;
+  return <Card className="space-y-5 p-5 sm:p-7"><div className="flex items-center gap-3"><span className="h-5 w-1 rounded-full bg-brand-500" aria-hidden="true" /><h2 className="text-lg font-semibold tracking-tight text-navy">{title}</h2></div>{children}</Card>;
 }
 
 export function LoadState({ loading, error, retry }: { loading: boolean; error: string; retry: () => Promise<void> }) {
@@ -47,6 +47,7 @@ export function ActionForm({ fields, label, submit, done, resetOnSuccess = false
   done?: () => Promise<void> | void;
   resetOnSuccess?: boolean;
 }) {
+  const formId = useId();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -64,9 +65,9 @@ export function ActionForm({ fields, label, submit, done, resetOnSuccess = false
     } finally { setBusy(false); }
   }}>
     {fields.map(f => {
-      const props = { name: f.name, label: f.label, defaultValue: f.value ?? "", required: f.required ?? true, error: errors[f.name] };
+      const props = { id: `${formId}-${f.name}`, name: f.name, label: f.label, defaultValue: f.value ?? "", required: f.required ?? true, error: errors[f.name] };
       if (f.type === "industry") return <IndustrySelect key={f.name} {...props} />;
-      if (f.type === "industries") return <IndustryMultiSelect key={f.name} name={f.name} label={f.label} required={f.required ?? true} error={errors[f.name]} selected={(f.value ?? "").split(",").map(v => v.trim()).filter(Boolean)} />;
+      if (f.type === "industries") return <IndustryMultiSelect key={f.name} id={`${formId}-${f.name}`} name={f.name} label={f.label} required={f.required ?? true} error={errors[f.name]} selected={(f.value ?? "").split(",").map(v => v.trim()).filter(Boolean)} />;
       if (f.options) return <Select key={f.name} {...props}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</Select>;
       if (f.type === "textarea") return <TextArea key={f.name} {...props} hint={f.hint} maxLength={f.maxLength ?? 10000} rows={4} />;
       return <Input key={f.name} {...props} hint={f.hint} maxLength={f.maxLength ?? 200} type={f.type ?? "text"} min={f.type === "number" ? "0" : undefined} step={f.type === "number" ? "0.01" : undefined} />;

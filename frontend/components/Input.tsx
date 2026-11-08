@@ -13,12 +13,12 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 const FIELD_BASE =
-  "form-control min-h-12 w-full rounded-xl border bg-white px-4 py-3 text-base text-navy placeholder:text-muted-light/70 outline-none focus:ring-2 disabled:bg-sand-100 disabled:cursor-not-allowed";
+  "form-control min-h-12 w-full rounded-xl border bg-white px-4 py-3 text-[0.9375rem] text-navy shadow-[0_1px_2px_#132a3a08] placeholder:text-muted-light/60 outline-none focus:ring-4 disabled:bg-sand-100 disabled:cursor-not-allowed";
 
 function errorClass(error?: string) {
   return error
-    ? "border-red-400 focus:border-red-400 focus:ring-red-200"
-    : "border-navy/15 focus:border-brand-500 focus:ring-brand-100";
+    ? "border-red-400 focus:border-red-400 focus:ring-red-500/10"
+    : "border-navy/15 focus:border-brand-500 focus:ring-brand-500/10";
 }
 
 function Label({
@@ -31,7 +31,7 @@ function Label({
   return (
     <label
       htmlFor={htmlFor}
-      className="mb-1 block text-sm font-medium text-navy"
+      className="mb-1.5 block text-[0.8125rem] font-medium text-navy"
     >
       {children}
     </label>
@@ -40,7 +40,7 @@ function Label({
 
 function Hint({ id, children }: { id?: string; children: React.ReactNode }) {
   return (
-    <p id={id} className="mt-1 text-xs text-muted-light">
+    <p id={id} className="mt-1.5 text-xs text-muted-light">
       {children}
     </p>
   );

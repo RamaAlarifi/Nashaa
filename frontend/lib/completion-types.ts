@@ -1,0 +1,6 @@
+export interface Collaboration { id: string; challenge_id: string; challenge_title: string; status: "active" | "ready" | "completed"; owner_id: string; innovator_id: string; updates: {id:string; author_id:string; body:string; created_at:string}[]; ratings: {id:string; author_id:string; score:number; comment:string}[] }
+export interface CustomerProfile { id:string; kind:"business"|"consumer"; idea_revision:number; provider:string; updated_at:string; details:Record<string,string> }
+export interface CompanySuggestion {id:string; name:string; industry:string; location:string; website:string; source:string; fictional:boolean; score:number; reasons:string[]; missing:string[]}
+export interface CustomerSuggestions {kind:string|null;items:CompanySuggestion[];message:string;segments?:string[];channels?:string;need?:string;assumptions?:string}
+export interface Lead {id:string;idea_id:string;idea_name?:string;kind:string;status:string;snapshot:Record<string,string|boolean>;notes?:{id:string;body:string;created_at:string}[];draft?:{id:string;body:string;provider:string}|null}
+export interface Report {id:string;target_type:string;target_id:string;category:string;description:string;status:string;decision:string;reported_record?:Record<string,unknown>}

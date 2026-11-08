@@ -4,12 +4,12 @@
 type BadgeTone = "neutral" | "success" | "warn" | "danger" | "info" | "gold";
 
 const TONES: Record<BadgeTone, string> = {
-  neutral: "bg-navy-50 text-navy",
-  success: "bg-brand-100 text-brand-700",
-  warn: "bg-gold-50 text-gold-700",
-  danger: "bg-red-100 text-red-700",
-  info: "bg-turquoise-50 text-turquoise-700",
-  gold: "bg-gold-100 text-gold-700",
+  neutral: "bg-navy-50/80 text-navy ring-navy/10",
+  success: "bg-brand-50 text-brand-700 ring-brand-500/20",
+  warn: "bg-gold-50 text-gold-700 ring-gold-500/30",
+  danger: "bg-red-50 text-red-700 ring-red-600/15",
+  info: "bg-turquoise-50 text-turquoise-700 ring-turquoise-500/25",
+  gold: "bg-gold-100 text-gold-700 ring-gold-500/30",
 };
 
 export function Badge({
@@ -23,7 +23,7 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${TONES[tone]} ${className}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${TONES[tone]} ${className}`}
     >
       {children}
     </span>

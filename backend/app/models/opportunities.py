@@ -26,6 +26,7 @@ class Challenge(Base, UUIDPkMixin, TimestampMixin):
     timeline: Mapped[str] = mapped_column(String(200), default="")
     compensation: Mapped[str] = mapped_column(String(200), default="")
     status: Mapped[str] = mapped_column(String(32), default="draft", index=True)
+    is_hidden: Mapped[bool] = mapped_column(default=False, server_default="false")
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
@@ -58,6 +59,10 @@ class Proposal(Base, UUIDPkMixin, TimestampMixin):
 
 class Collaboration(Base, UUIDPkMixin, TimestampMixin):
     __tablename__ = "collaborations"
+    __table_args__ = (CheckConstraint("status IN ('active','ready','completed')"),)
+    status: Mapped[str] = mapped_column(String(16), default="active", server_default="active")
+    ready_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     challenge_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("challenges.id"), unique=True)
     selected_proposal_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("proposals.id"), unique=True)
 

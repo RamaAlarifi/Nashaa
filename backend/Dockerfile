@@ -4,7 +4,7 @@
 # stage copies only that venv + the application and runs as a non-root user.
 
 # ---- Builder: install dependencies into a virtualenv ----------------------
-FROM python:3.10-slim AS builder
+FROM python:3.11-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -16,10 +16,10 @@ ENV PATH=/opt/venv/bin:$PATH
 
 WORKDIR /tmp/build
 COPY requirements.txt ./
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip setuptools==84.2.1 && pip install -r requirements.txt
 
 # ---- Runtime: minimal, non-root -----------------------------------------
-FROM python:3.10-slim AS runtime
+FROM python:3.11-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

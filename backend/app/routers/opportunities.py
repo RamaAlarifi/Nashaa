@@ -49,7 +49,7 @@ def list_challenges(q: str = Query("", max_length=200), industry: str = Query(""
         require(user, Role.BUSINESS_OWNER)
         query = query.where(Challenge.owner_id == user.id)
     else:
-        query = query.join(User, User.id == Challenge.owner_id).where(Challenge.status == "published", User.account_status == AccountStatus.ACTIVE)
+        query = query.join(User, User.id == Challenge.owner_id).where(Challenge.status == "published", Challenge.is_hidden.is_(False), User.account_status == AccountStatus.ACTIVE)
     rows = list(db.scalars(query.order_by(Challenge.created_at.desc())))
     return [record(r) for r in rows if q.casefold() in (r.title + " " + r.problem).casefold() and matches_filter(industry, r.industry) and location.casefold() in r.location.casefold() and (not skill or any(skill.casefold() in s.casefold() for s in r.required_skills))]
 

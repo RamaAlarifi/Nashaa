@@ -228,3 +228,9 @@ This README is for running the project on your own PC. For a real deployment,
 use `docker-compose.production.yml`, put it behind HTTPS, set a strong
 PostgreSQL password, real SMTP, and a real `SECRET_KEY`. See `Nashaa_Guide.md`
 for the full reference.
+
+## Sprint 3
+
+Sprint 3 adds collaboration progress and ratings, customer discovery, saved leads and outreach drafts, reporting, moderation and evaluation evidence. See [scope and setup](docs/sprint3.md), [user guide](docs/user-guide.md), [architecture](docs/sprint3-architecture.md) and [executed validation](docs/sprint3-validation.md).
+
+Use Python 3.11 for the release backend; the Docker image supplies it. This enables the patched DNS dependency. Existing Python 3.10 development environments can run the application but retain the older DNS dependency and are not the release baseline. Rebuild containers after updating dependencies.

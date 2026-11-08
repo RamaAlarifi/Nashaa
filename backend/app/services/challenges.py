@@ -29,6 +29,8 @@ def write_challenge(db, user, payload, challenge_id=None):
 def publish(db, user, challenge_id):
     require(user, Role.BUSINESS_OWNER)
     row = owned(get(db, Challenge, challenge_id, True), user)
+    if row.is_hidden:
+        raise HTTPException(409, "This challenge is hidden by platform administration.")
     if row.status != "draft":
         raise HTTPException(409, "Only a draft can be published.")
     if not all((row.problem.strip(), row.desired_outcome.strip(), row.required_skills, row.industry.strip(), row.timeline.strip())):
@@ -46,6 +48,8 @@ def close(db, user, challenge_id):
 
 def visible_challenge(db, user, challenge_id):
     row = get(db, Challenge, challenge_id)
+    if row.is_hidden and row.owner_id != user.id:
+        raise HTTPException(404, "Challenge not found.")
     if row.owner_id != user.id and get(db, User, row.owner_id).account_status != AccountStatus.ACTIVE:
         raise HTTPException(404, "Challenge not found.")
     if row.owner_id != user.id and row.status != "published":
@@ -61,7 +65,7 @@ def submit(db, user, challenge_id, payload):
     row = get(db, Challenge, challenge_id, True)
     verified(get(db, User, user.id, True))
     owner = get(db, User, row.owner_id)
-    if owner.account_status != AccountStatus.ACTIVE or row.status != "published" or db.scalar(select(Collaboration).where(Collaboration.challenge_id == row.id)):
+    if row.is_hidden or owner.account_status != AccountStatus.ACTIVE or row.status != "published" or db.scalar(select(Collaboration).where(Collaboration.challenge_id == row.id)):
         raise HTTPException(409, "This challenge is no longer accepting proposals.")
     return save(db, Proposal(challenge_id=row.id, innovator_id=user.id, **payload.model_dump()))
 
@@ -69,7 +73,7 @@ def submit(db, user, challenge_id, payload):
 def select_proposal(db, user, challenge_id, proposal_id):
     require(user, Role.BUSINESS_OWNER)
     challenge = owned(get(db, Challenge, challenge_id, True), user)
-    if challenge.status != "published" or db.scalar(select(Collaboration).where(Collaboration.challenge_id == challenge.id)):
+    if challenge.is_hidden or challenge.status != "published" or db.scalar(select(Collaboration).where(Collaboration.challenge_id == challenge.id)):
         raise HTTPException(409, "This challenge is closed or already has a selected collaborator.")
     proposal = get(db, Proposal, proposal_id)
     if proposal.challenge_id != challenge.id:

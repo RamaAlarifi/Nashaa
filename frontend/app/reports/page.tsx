@@ -1,0 +1,4 @@
+"use client";
+import { LoadState,Section,useResource } from "@/components/OpportunityUI";
+import type { Report } from "@/lib/completion-types";
+export default function ReportsPage(){const r=useResource<Report[]>("/reports");return <div className="space-y-6"><h1 className="text-3xl font-semibold">My reports</h1><p>Use the report form on a participant profile, idea, challenge, collaboration or message to report a record you can access.</p><LoadState {...r} retry={r.reload}/>{!r.loading&&!r.error&&!r.data?.length&&<Section title="No reports submitted"><p>Your submitted reports and their decisions will appear here.</p></Section>}{r.data?.map(report=><Section key={report.id} title={`${report.target_type} report · ${report.status}`}><p>Category: {report.category.replaceAll("_"," ")}</p><p>{report.description}</p>{report.decision&&<p>Decision: {report.decision}</p>}</Section>)}</div>;}

@@ -40,7 +40,7 @@ def matches(db, user, idea_id=None):
     else:
         require(user, Role.INVESTOR)
         prefs = list(db.scalars(select(InvestorPreference).where(InvestorPreference.user_id == user.id)))
-        ideas = list(db.scalars(select(BusinessIdea).join(User, User.id == BusinessIdea.owner_id).where(BusinessIdea.visibility == IdeaVisibility.REGISTERED, User.account_status == AccountStatus.ACTIVE)))
+        ideas = list(db.scalars(select(BusinessIdea).join(User, User.id == BusinessIdea.owner_id).where(BusinessIdea.visibility == IdeaVisibility.REGISTERED, BusinessIdea.is_hidden.is_(False), User.account_status == AccountStatus.ACTIVE)))
     result = []
     for pref in prefs:
         investor = db.get(User, pref.user_id)
@@ -63,7 +63,7 @@ def share(db, user, idea_id, payload):
     investor = participant(db, payload.investor_id)
     require(investor, Role.INVESTOR)
     assessment = get(db, Assessment, payload.assessment_id)
-    if idea.visibility != IdeaVisibility.REGISTERED:
+    if idea.is_hidden or idea.visibility != IdeaVisibility.REGISTERED:
         raise HTTPException(409, "Set the idea to registered visibility before approving assessment sharing.")
     if assessment.idea_id != idea.id or assessment.generation_status != AssessmentStatus.SUCCEEDED:
         raise HTTPException(422, "Select a successful assessment belonging to this idea.")
@@ -88,7 +88,7 @@ def shared_view(db, user, share_id):
     assessment = get(db, Assessment, row.assessment_id)
     idea = get(db, BusinessIdea, assessment.idea_id)
     owner = db.get(User, row.owner_id)
-    if row.revoked_at or idea.visibility != IdeaVisibility.REGISTERED or not owner or owner.account_status != AccountStatus.ACTIVE or assessment.generation_status != AssessmentStatus.SUCCEEDED:
+    if idea.is_hidden or row.revoked_at or idea.visibility != IdeaVisibility.REGISTERED or not owner or owner.account_status != AccountStatus.ACTIVE or assessment.generation_status != AssessmentStatus.SUCCEEDED:
         raise HTTPException(404, "Shared assessment is unavailable.")
     return {"share_id": row.id, "idea": BusinessIdeaSummary.model_validate(idea),
         "assessment": SharedAssessmentOut.model_validate(assessment), "stale": assessment.idea_revision != idea.revision_number}

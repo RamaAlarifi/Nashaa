@@ -5,10 +5,14 @@
 export function Spinner({ label = "Loading…" }: { label?: string }) {
   return (
     <div
-      className="flex items-center justify-center gap-3 py-8 text-muted-light"
+      className="flex flex-col items-center justify-center gap-4 py-16 text-muted-light"
       role="status"
     >
-      <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+      <span className="relative flex h-10 w-10 items-center justify-center">
+        <span className="absolute inset-0 rounded-full border-2 border-brand-500/15" />
+        <span className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-brand-500" />
+        <span className="h-1.5 w-1.5 rounded-full bg-turquoise-500" />
+      </span>
       <span className="text-sm">{label}</span>
     </div>
   );
@@ -24,12 +28,20 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-navy/15 bg-white px-6 py-12 text-center">
-      <p className="font-medium text-navy">{title}</p>
+    <div className="relative overflow-hidden rounded-2xl border border-dashed border-navy/15 bg-white/70 px-6 py-14 text-center">
+      <span
+        className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-500/10"
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" />
+        </svg>
+      </span>
+      <p className="text-base font-semibold text-navy">{title}</p>
       {description && (
-        <p className="mt-1 text-sm text-muted-light">{description}</p>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-light">{description}</p>
       )}
-      {action && <div className="mt-4">{action}</div>}
+      {action && <div className="mt-6 flex justify-center">{action}</div>}
     </div>
   );
 }
@@ -45,16 +57,19 @@ export function ErrorState({
 }) {
   return (
     <div
-      className="rounded-lg border border-red-200 bg-red-50 p-6 text-center"
+      className="mx-auto max-w-lg rounded-2xl border border-red-200 bg-white p-8 text-center shadow-[0_1px_2px_#132a3a0a]"
       role="alert"
     >
-      <p className="font-medium text-red-700">{title}</p>
-      <p className="mt-1 text-sm text-red-600">{message}</p>
+      <span className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-lg font-semibold text-red-600" aria-hidden="true">
+        !
+      </span>
+      <p className="font-semibold text-navy">{title}</p>
+      <p className="mt-2 text-sm leading-relaxed text-red-700">{message}</p>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
-          className="mt-4 rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+          className="button mt-5 inline-flex min-h-10 items-center rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
         >
           Try again
         </button>
@@ -71,16 +86,22 @@ export function Alert({
   message: string;
 }) {
   const styles = {
-    error: "border-red-200 bg-red-50 text-red-700",
+    error: "border-red-200 bg-red-50/80 text-red-700",
     success: "border-brand-200 bg-brand-50 text-brand-700",
     info: "border-turquoise-100 bg-turquoise-50 text-turquoise-700",
   }[kind];
+  const dot = {
+    error: "bg-red-500",
+    success: "bg-brand-500",
+    info: "bg-turquoise-500",
+  }[kind];
   return (
     <div
-      className={`rounded-md border px-4 py-3 text-sm ${styles}`}
+      className={`page-enter flex items-start gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed ${styles}`}
       role={kind === "error" ? "alert" : "status"}
     >
-      {message}
+      <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} aria-hidden="true" />
+      <span className="min-w-0">{message}</span>
     </div>
   );
 }

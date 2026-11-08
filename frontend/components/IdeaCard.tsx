@@ -35,14 +35,14 @@ export function IdeaCard({
     : null;
   return (
     <Link href={`/ideas/${idea.id}`} className="idea-card group">
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+      <span className="icon-chip h-12 w-12 rounded-2xl">
         <Icon name="idea" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium text-muted-light">
+        <p className="eyebrow text-brand-700">
           <IndustryLabel value={idea.industry} />
         </p>
-        <h3 className="mt-1 break-words text-lg font-semibold group-hover:text-brand-700">
+        <h3 className="mt-1.5 break-words text-[1.0625rem] font-semibold tracking-tight transition-colors group-hover:text-brand-700">
           {idea.name}
         </h3>
         <p className="mt-2 text-xs text-muted-light">
@@ -63,7 +63,9 @@ export function IdeaCard({
               idea.visibility}
           </Badge>
         )}
-        <Icon name="arrow" className="h-4 w-4 shrink-0 text-brand-700" />
+        <span className="idea-card-arrow" aria-hidden="true">
+          <Icon name="arrow" className="h-4 w-4" />
+        </span>
       </div>
     </Link>
   );

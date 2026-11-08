@@ -24,4 +24,6 @@ def decide(db, user, request_id, payload):
     applicant = get(db, User, row.user_id, True)
     row.status = applicant.verification_status = payload.decision
     row.decision_reason, row.reviewer_id, row.decided_at = payload.reason, user.id, now()
+    from app.services.completion import log_action
+    log_action(db, user, "verification_" + payload.decision, "verification_request", row.id, payload.reason)
     return save(db, row)

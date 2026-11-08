@@ -1,0 +1,40 @@
+[
+  {
+    "name": "Fictional ColdLoop Container Rental",
+    "industry": "manufacturing_packaging",
+    "industry_detail": "Reusable takeaway containers and reverse logistics",
+    "business_stage": "validation",
+    "target_location": "Riyadh",
+    "problem": "Independent restaurants discard single-use takeaway containers. Returning reusable containers is inconvenient for their customers.",
+    "solution": "Rent a pool of reusable takeaway containers to restaurants and collect, wash and redistribute returned containers.",
+    "intended_customers": "Restaurant owner-managers are buyers; takeaway diners return the containers. Start with independent lunch restaurants in one compact district.",
+    "budget": "SAR 50000 total available startup budget; this is not a sales forecast.",
+    "business_model": "B2B rental service. Own the container pool and organise collection and washing through a partner. Restaurant staff handle issue and return records.",
+    "value_proposition": "Reduce restaurant packaging waste without asking each restaurant to operate its own washing and collection service.",
+    "revenue_model": "Proposed monthly restaurant subscription of SAR 800 for a shared container pool. This price has not been tested; replacement/deposit terms are undecided.",
+    "market_opportunity": "Fictional demonstration input: three restaurant managers expressed informal interest, with no signed orders or willingness-to-pay evidence. No market-size study is available.",
+    "competition": "Alternatives identified in the plan are disposable containers and restaurants operating their own reusable containers. No named competitor research has been performed.",
+    "cost_structure": "Washing partner price, collection costs, container purchase cost, container loss rate and staff costs are not yet known.",
+    "growth_strategy": "Pilot with two nearby restaurants before considering more collection districts. Measure actual returns and collection effort.",
+    "current_challenges": "No washing partner agreement; container hygiene process, diner return incentives and lost-container responsibility remain unresolved."
+  },
+  {
+    "name": "Fictional ClinicRoster Scheduling SaaS",
+    "industry": "software_it",
+    "industry_detail": "Appointment scheduling software for physiotherapy clinics",
+    "business_stage": "idea",
+    "target_location": "Jeddah",
+    "problem": "Small physiotherapy clinics double-book rooms when several receptionists update paper diaries.",
+    "solution": "A cloud scheduling tool with receptionist access controls, conflict detection and room calendars. The first version will use fictional appointment records for testing.",
+    "intended_customers": "Independent physiotherapy clinic owners pay; receptionists schedule appointments and therapists view room availability.",
+    "budget": "SAR 80000 available startup budget.",
+    "business_model": "B2B software subscription; the founder contracts development and supports clinic onboarding.",
+    "value_proposition": "Prevent room-booking conflicts with a lightweight workflow instead of requiring a clinic to replace its entire management system.",
+    "revenue_model": "Proposed SAR 450 per clinic per month. The founder assumes 100 paying clinics in the first month but has no sales pipeline or signed customers.",
+    "market_opportunity": "Fictional demonstration input: six clinic administrators were interviewed informally, three of whom preferred keeping paper diaries. No verified market-size data is available.",
+    "competition": "Owner-identified alternatives: paper diaries, shared spreadsheets and existing clinic-management software. No named competitor or pricing research is supplied.",
+    "cost_structure": "An unverified development quote of SAR 45000 and an estimated SAR 800 monthly hosting budget are supplied. Support, security review, onboarding, messaging and maintenance costs are not specified.",
+    "growth_strategy": "Pilot with three clinics in Jeddah, train receptionists and measure booking conflicts before expanding. Pricing and retention have not been tested.",
+    "current_challenges": "Founder lacks a technical cofounder; data-access permissions, reliability, backups and clinic integrations are unresolved."
+  }
+]

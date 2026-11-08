@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.business_idea import BusinessIdea
-from app.models.enums import IdeaVisibility
+from app.models.enums import IdeaVisibility, AccountStatus
 from app.models.user import User
 from app.schemas.business_idea import (
     BusinessIdeaCreate,
@@ -78,7 +78,7 @@ def view_idea(db: Session, idea_id: uuid.UUID, viewer: User) -> tuple[BusinessId
     if idea.owner_id == viewer.id:
         return idea, True
 
-    if idea.visibility == IdeaVisibility.REGISTERED:
+    if idea.visibility == IdeaVisibility.REGISTERED and not idea.is_hidden and db.get(User, idea.owner_id).account_status == AccountStatus.ACTIVE:
         return idea, False
 
     # Private: non-owners must not even learn the idea exists.
@@ -88,7 +88,7 @@ def view_idea(db: Session, idea_id: uuid.UUID, viewer: User) -> tuple[BusinessId
 def list_own_ideas(db: Session, user: User) -> list[BusinessIdea]:
     return list(
         db.execute(
-            select(BusinessIdea)
+            select(BusinessIdea).join(User, User.id == BusinessIdea.owner_id)
             .where(BusinessIdea.owner_id == user.id)
             .order_by(BusinessIdea.updated_at.desc())
         ).scalars().all()
@@ -99,9 +99,11 @@ def list_visible_ideas(db: Session, viewer: User) -> list[BusinessIdea]:
     """Ideas visible to a signed-in non-owner user (US08)."""
     return list(
         db.execute(
-            select(BusinessIdea)
+            select(BusinessIdea).join(User, User.id == BusinessIdea.owner_id)
             .where(
                 BusinessIdea.owner_id != viewer.id,
+                BusinessIdea.is_hidden.is_(False),
+                User.account_status == AccountStatus.ACTIVE,
                 BusinessIdea.visibility == IdeaVisibility.REGISTERED,
             )
             .order_by(BusinessIdea.updated_at.desc())

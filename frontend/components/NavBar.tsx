@@ -1,25 +1,33 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "./Logo";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 import { Button } from "./Button";
 import { useAuth } from "@/lib/auth-context";
 import { ROLE_LABELS } from "@/lib/types";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Overview", icon: "grid" },
-  { href: "/ideas", label: "My ideas", icon: "idea" },
-  { href: "/profile", label: "My profile", icon: "user" },
-  { href: "/challenges", label: "Challenges", icon: "idea" },
-  { href: "/proposals", label: "My proposals", icon: "idea" },
-  { href: "/investments", label: "Investments", icon: "grid" },
-  { href: "/verification", label: "Verification", icon: "user" },
-  { href: "/messages", label: "Messages", icon: "user" },
-  { href: "/people", label: "Discover people", icon: "user" },
-] as const;
+type NavItem = { href: string; label: string; icon: IconName; group: "Workspace" | "Connect" | "Account" };
+
+const NAV_ITEMS: readonly NavItem[] = [
+  { href: "/dashboard", label: "Overview", icon: "grid", group: "Workspace" },
+  { href: "/ideas", label: "My ideas", icon: "idea", group: "Workspace" },
+  { href: "/challenges", label: "Challenges", icon: "target", group: "Workspace" },
+  { href: "/proposals", label: "My proposals", icon: "file", group: "Workspace" },
+  { href: "/investments", label: "Investments", icon: "trend", group: "Workspace" },
+  { href: "/collaborations", label: "Collaborations", icon: "link", group: "Workspace" },
+  { href: "/leads", label: "Saved leads", icon: "bookmark", group: "Workspace" },
+  { href: "/messages", label: "Messages", icon: "chat", group: "Connect" },
+  { href: "/people", label: "Discover people", icon: "users", group: "Connect" },
+  { href: "/profile", label: "My profile", icon: "user", group: "Account" },
+  { href: "/verification", label: "Verification", icon: "shield", group: "Account" },
+  { href: "/reports", label: "My reports", icon: "flag", group: "Account" },
+  { href: "/admin", label: "Administration", icon: "lock", group: "Account" },
+];
+
+const GROUPS = ["Workspace", "Connect", "Account"] as const;
 
 export function NavBar() {
   const { user, profile, signOut } = useAuth();
@@ -28,16 +36,35 @@ export function NavBar() {
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const displayName = profile?.display_name || user?.email || "Your workspace";
+  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
   async function handleSignOut() {
     setSigningOut(true);
     await signOut();
     router.replace("/login");
   }
+  const visible = NAV_ITEMS.filter(item => {
+    if (item.href === "/collaborations") return user?.role === "business_owner" || user?.role === "innovator";
+    if (item.href === "/leads") return user?.role === "business_owner";
+    if (item.href === "/admin") return user?.role === "admin";
+    if (item.href === "/ideas") return user?.role === "business_owner";
+    if (item.href === "/challenges") return user?.role === "business_owner" || user?.role === "innovator";
+    if (item.href === "/proposals") return user?.role === "innovator";
+    if (item.href === "/investments") return user?.role === "investor";
+    if (item.href === "/messages") return user?.role !== "admin";
+    if (item.href === "/people") return user?.role !== "admin";
+    return true;
+  });
   return (
     <header className="workspace-nav">
-      <div className="flex items-center justify-between px-6 py-6 lg:px-8 lg:py-9">
-        <Link href="/dashboard" aria-label="Nashaa home">
-          <Logo variant="reversed" markClassName="h-10 w-10" />
+      <div className="flex items-center justify-between px-5 py-4 lg:px-6 lg:pb-4 lg:pt-7">
+        <Link href="/dashboard" aria-label="Nashaa home" className="rounded-lg">
+          <Logo variant="reversed" markClassName="h-9 w-9" />
         </Link>
         <button
           type="button"
@@ -45,95 +72,75 @@ export function NavBar() {
           aria-expanded={open}
           aria-controls="workspace-menu"
           aria-label="Toggle navigation menu"
-          className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 text-white lg:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] text-white transition-colors hover:bg-white/10 lg:hidden"
         >
-          <svg
-            viewBox="0 0 24 24"
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            aria-hidden="true"
-          >
-            <path
-              d={open ? "M6 6l12 12M18 6L6 18" : "M4 7h16M4 12h16M4 17h16"}
-            />
-          </svg>
+          <Icon name={open ? "close" : "menu"} />
         </button>
       </div>
       <div
         id="workspace-menu"
-        className={`${open ? "flex" : "hidden"} min-h-0 flex-1 flex-col px-5 pb-6 lg:flex`}
+        className={`${open ? "nav-drawer flex max-h-[calc(100dvh-76px)] overflow-y-auto" : "hidden"} min-h-0 flex-1 flex-col px-4 pb-5 lg:flex lg:max-h-none lg:px-5`}
       >
-        <p className="eyebrow mb-4 mt-3 px-4 text-navy-100/80">Workspace</p>
-        <nav aria-label="Main navigation">
-          <ul className="space-y-2">
-            {NAV_ITEMS.filter(item => {
-              if (item.href === "/ideas") return user?.role === "business_owner";
-              if (item.href === "/challenges") return user?.role === "business_owner" || user?.role === "innovator";
-              if (item.href === "/proposals") return user?.role === "innovator";
-              if (item.href === "/investments") return user?.role === "investor";
-              if (item.href === "/messages") return user?.role !== "admin";
-              if (item.href === "/people") return user?.role !== "admin";
-              return true;
-            }).map(({ href, label, icon }) => {
-              const active =
-                pathname === href || pathname.startsWith(`${href}/`);
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    onClick={() => setOpen(false)}
-                    aria-current={active ? "page" : undefined}
-                    className={`nav-link ${active ? "nav-link-active" : ""}`}
-                  >
-                    <Icon name={icon} />
-                    {label}
-                    {active && (
-                      <span className="ml-auto h-1.5 w-1.5 rounded-full bg-turquoise-400" />
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+        <nav aria-label="Main navigation" className="flex-1">
+          {GROUPS.map(group => {
+            const items = visible.filter(item => item.group === group);
+            if (!items.length) return null;
+            return (
+              <div key={group}>
+                <p className="nav-section-label">{group}</p>
+                <ul className="space-y-0.5">
+                  {items.map(({ href, label, icon }) => {
+                    const active = pathname === href || pathname.startsWith(`${href}/`);
+                    return (
+                      <li key={href}>
+                        <Link
+                          href={href}
+                          onClick={() => setOpen(false)}
+                          aria-current={active ? "page" : undefined}
+                          className={`nav-link ${active ? "nav-link-active" : ""}`}
+                        >
+                          <span className="nav-icon">
+                            <Icon name={icon} className="h-[1.125rem] w-[1.125rem]" />
+                          </span>
+                          {label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })}
         </nav>
-        <div className="mt-auto pt-10">
-          <div className="mb-6 hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 lg:block">
-            <Icon name="spark" className="mb-3 h-6 w-6 text-turquoise-400" />
-            <p className="text-sm font-medium text-white">
-              Small steps. Real progress.
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-navy-100">
-              Give your next idea the space to grow.
-            </p>
-          </div>
-          <div className="flex min-w-0 items-center gap-3 border-t border-white/10 pt-6">
-            <span
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-turquoise-500/15 text-sm font-semibold text-turquoise-400"
-              aria-hidden="true"
-            >
-              {displayName.slice(0, 1).toUpperCase()}
-            </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-white">
-                {displayName}
-              </p>
-              <p className="mt-1 text-xs text-navy-100">
-                {user ? ROLE_LABELS[user.role] : "Nashaa"}
-              </p>
+        <div className="mt-8">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-turquoise-500/30 to-brand-500/30 text-sm font-semibold text-white ring-1 ring-inset ring-white/15"
+                aria-hidden="true"
+              >
+                {displayName.slice(0, 1).toUpperCase()}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-white">{displayName}</p>
+                <p className="mt-0.5 flex items-center gap-1.5 text-xs text-navy-100/70">
+                  <span className="h-1.5 w-1.5 rounded-full bg-turquoise-400" aria-hidden="true" />
+                  {user ? ROLE_LABELS[user.role] : "Nashaa"}
+                </p>
+              </div>
             </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              loading={signingOut}
+              onClick={handleSignOut}
+              className="mt-3 w-full !justify-start !text-navy-100/80 hover:!bg-white/[0.08] hover:!text-white"
+            >
+              <Icon name="logout" className="h-4 w-4" />
+              Sign out
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            loading={signingOut}
-            onClick={handleSignOut}
-            className="mt-4 w-full !text-navy-100 hover:!bg-white/10"
-          >
-            <Icon name="logout" className="h-4 w-4" />
-            Sign out
-          </Button>
         </div>
       </div>
     </header>

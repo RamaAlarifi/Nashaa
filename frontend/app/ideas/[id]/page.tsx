@@ -1,4 +1,5 @@
 "use client";
+import { ReportContent } from "@/components/ReportContent";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -196,7 +197,7 @@ export default function IdeaDetailPage() {
   if (loading) return <Spinner label="Loading the idea…" />;
   if (summary && !error) return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-3xl font-semibold">{summary.name}</h1>
+      <h1 className="text-3xl font-semibold">{summary.name}</h1><ReportContent kind="idea" id={params.id} />
       <Alert kind="info" message="The owner has shared this summary with registered users. Detailed planning and assessments remain private." />
       <Card className="space-y-4 p-6">
         <p><strong>Industry:</strong> <IndustryLabel value={summary.industry} /></p>
@@ -247,6 +248,7 @@ export default function IdeaDetailPage() {
         </Link>
       </div>
 
+      <ReportContent kind="idea" id={params.id} />
       {topError && <Alert message={topError} />}
 
       {/* Visibility setting (screen 12) */}

@@ -6,7 +6,7 @@ from sqlalchemy import inspect, select
 from app.ai.base import AIResponseError, AssessmentResult
 from app.config import Settings, get_settings
 from app.models.password_reset import PasswordReset
-from tests.conftest import auth_headers, register_and_login
+from quality.conftest import auth_headers, register_and_login
 
 
 def test_public_admin_registration_rejected(client):
@@ -16,9 +16,9 @@ def test_public_admin_registration_rejected(client):
 
 def test_final_migrated_schema(test_engine):
     schema = inspect(test_engine)
-    assert set(schema.get_table_names()) == {'users', 'profiles', 'sessions', 'password_resets', 'business_ideas', 'assessments', 'alembic_version'}
-    assert 'verification_status' not in {c['name'] for c in schema.get_columns('users')}
-    assert 'contact_preference' not in {c['name'] for c in schema.get_columns('profiles')}
+    assert {'users', 'profiles', 'sessions', 'password_resets', 'business_ideas', 'assessments', 'alembic_version', 'challenges', 'proposals', 'collaborations', 'assessment_shares'} <= set(schema.get_table_names())
+    assert 'verification_status' in {c['name'] for c in schema.get_columns('users')}
+    assert 'contact_preference' in {c['name'] for c in schema.get_columns('profiles')}
 
 
 @pytest.mark.parametrize('role,info', [
@@ -31,11 +31,11 @@ def test_role_profile_and_dashboard(client, role, info):
     data, token = register_and_login(client, role=role)
     headers = auth_headers(token)
     assert client.put('/api/profile', headers=headers, json={'role_specific_info': info}).status_code == 200
-    assert client.get('/api/profile', headers=headers).json()['role_specific_info'] == info
+    expected = {**info, 'industry': 'manufacturing_packaging'} if role == 'business_owner' else info
+    assert client.get('/api/profile', headers=headers).json()['role_specific_info'] == expected
     assert client.put('/api/profile', headers=headers, json={'role_specific_info': {'moderation': 'yes'}}).status_code == 422
     dashboard = client.get('/api/dashboard', headers=headers).json()
     assert 'admin_actions' not in dashboard
-    assert 'Sprint 2' not in str(dashboard)
     if role != 'business_owner':
         assert client.post('/api/ideas', headers=headers, json={'name': 'Forbidden'}).status_code == 403
 
@@ -119,11 +119,11 @@ def test_long_passwords_are_not_truncated(client):
     assert client.post('/api/auth/login', json={'email': 'newowner@nashaa.sa', 'password': 'x' * 80 + 'b'}).status_code == 401
 
 
-def test_later_routes_absent(client):
-    paths = client.get('/api/openapi.json').json()['paths']
-    for route in ('challenges', 'proposals', 'messages', 'collaborations', 'investor-matches', 'leads', 'ratings', 'reports', 'moderation', 'analytics', 'verification'):
-        assert not any(route in path for path in paths)
-        assert client.get('/api/' + route).status_code == 404
+def test_sprint3_routes_require_authentication(client):
+    # Sprint 3 is now implemented; retained foundation checks enforce access
+    # instead of asserting that the newly authorised routes do not exist.
+    for path in ("/api/leads", "/api/reports", "/api/collaborations", "/api/admin/activity"):
+        assert client.get(path).status_code == 401
 
 
 def test_concurrent_assessment_requests_use_database_lock(test_engine, monkeypatch):

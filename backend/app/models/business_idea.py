@@ -13,6 +13,7 @@ from app.models.enums import BusinessStage, IdeaVisibility
 
 class BusinessIdea(Base, UUIDPkMixin, TimestampMixin):
     __tablename__ = "business_ideas"
+    is_hidden: Mapped[bool] = mapped_column(default=False, server_default="false")
 
     owner_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True

@@ -15,13 +15,13 @@ def context(db, sender, recipient, idea_id, challenge_id, lock=False):
         item = get(db, BusinessIdea, idea_id, lock)
         owner = sender if sender.id == item.owner_id else recipient
         other = recipient if owner.id == sender.id else sender
-        if owner.id != item.owner_id or owner.role != Role.BUSINESS_OWNER or other.role != Role.INVESTOR or item.visibility != IdeaVisibility.REGISTERED:
+        if item.is_hidden or owner.id != item.owner_id or owner.role != Role.BUSINESS_OWNER or other.role != Role.INVESTOR or item.visibility != IdeaVisibility.REGISTERED:
             raise HTTPException(403, "This idea does not permit contact between these participants.")
     else:
         item = get(db, Challenge, challenge_id, lock)
         owner = sender if sender.id == item.owner_id else recipient
         other = recipient if owner.id == sender.id else sender
-        if owner.id != item.owner_id or owner.role != Role.BUSINESS_OWNER or other.role != Role.INNOVATOR:
+        if item.is_hidden or owner.id != item.owner_id or owner.role != Role.BUSINESS_OWNER or other.role != Role.INNOVATOR:
             raise HTTPException(403, "This challenge does not permit contact between these participants.")
         if item.status != "published" and not db.scalar(select(Proposal).where(Proposal.challenge_id == item.id, Proposal.innovator_id == other.id)):
             raise HTTPException(403, "This challenge is unavailable for contact.")
