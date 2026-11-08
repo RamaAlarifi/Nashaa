@@ -82,7 +82,7 @@ export interface BusinessIdeaSummary {
 }
 
 export interface Assessment {
-  provider: "mock" | "gemini" | "unknown";
+  provider: "mock" | "gemini" | "openai" | "unknown";
   id: string;
   idea_id: string;
   idea_revision: number;

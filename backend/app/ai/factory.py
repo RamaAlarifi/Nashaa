@@ -5,6 +5,7 @@ from __future__ import annotations
 from app.ai.base import AssessmentProvider, AIServiceError
 from app.ai.gemini import GeminiAssessmentProvider
 from app.ai.mock import MockAssessmentProvider
+from app.ai.openai import OpenAIAssessmentProvider
 from app.config import get_settings
 
 _cached: AssessmentProvider | None = None
@@ -22,6 +23,9 @@ def get_assessment_provider() -> AssessmentProvider:
     if settings.ai_provider == "gemini":
         # A misconfigured real provider must never silently produce simulated output.
         _cached = GeminiAssessmentProvider()
+        return _cached
+    if settings.ai_provider == "openai":
+        _cached = OpenAIAssessmentProvider()
         return _cached
     raise AIServiceError(f"Unknown AI provider: {settings.ai_provider}")
 

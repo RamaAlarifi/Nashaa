@@ -43,7 +43,9 @@ class Settings(BaseSettings):
     frontend_origin: str = Field(default="http://localhost:3000")
 
     # AI provider
-    ai_provider: Literal["gemini", "mock"] = Field(default="mock")
+    ai_provider: Literal["openai", "gemini", "mock"] = Field(default="mock")
+    openai_api_key: str = Field(default="")
+    openai_model: str = Field(default="gpt-5-mini")
     gemini_api_key: str = Field(default="")
     gemini_model: str = Field(default="")
     ai_timeout_seconds: int = Field(default=60)
