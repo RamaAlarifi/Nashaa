@@ -468,7 +468,7 @@ function AssessmentPanel({
       {status.latest_valid ? (
         <div key={status.latest_valid.id} className="assessment-result space-y-4">
           {generating && <p className="text-sm text-muted-light">Your previous assessment remains available while the new one is generated.</p>}
-          <p className="text-sm font-medium text-brand-700">{status.latest_valid.provider === "openai" ? "OpenAI business-plan assessment" : status.latest_valid.provider === "gemini" ? "Gemini business-plan assessment" : status.latest_valid.provider === "mock" ? "Simulated demonstration assessment. Regenerate with AI for a real plan review." : "Earlier assessment: provider was not recorded."}</p>
+          <p className="text-sm font-medium text-brand-700">{status.latest_valid.provider === "openai" ? "OpenAI business-plan assessment" : status.latest_valid.provider === "mock" ? "Simulated demonstration assessment. Regenerate with AI for a real plan review." : "Earlier assessment: provider was not recorded."}</p>
           <p className="text-xs text-muted-light">
             Generated from idea revision {status.latest_valid.idea_revision}
           </p>

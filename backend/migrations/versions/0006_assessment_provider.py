@@ -1,4 +1,4 @@
-"""Record assessment provenance without relabelling historic output as Gemini."""
+"""Record assessment provenance without relabelling historic output as a real AI provider."""
 from alembic import op
 import sqlalchemy as sa
 revision = "0006_assessment_provider"

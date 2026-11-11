@@ -117,7 +117,7 @@ sequenceDiagram
   actor Owner
   participant UI as Customer and lead workspace
   participant API as FastAPI services
-  participant AI as Server-side Gemini adapter
+  participant AI as Server-side OpenAI adapter
   participant DB as PostgreSQL
   Owner->>UI: Generate target profile for saved idea
   UI->>API: Authenticated generation request with customer focus

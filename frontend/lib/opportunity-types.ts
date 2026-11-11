@@ -45,7 +45,7 @@ export interface Share {
 export interface SharedAssessment {
   share_id: string; idea: BusinessIdeaSummary; stale: boolean;
   assessment: {
-    provider: "mock" | "gemini" | "openai" | "unknown";
+    provider: "mock" | "openai" | "unknown";
     id: string; idea_revision: number; created_at: string;
     market_considerations: string; target_customer_analysis: string;
     competitor_considerations: string; indicative_costs: string;

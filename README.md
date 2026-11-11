@@ -51,18 +51,18 @@ The defaults in `.env.example` work out of the box for a local demo:
 
 > Don't commit `.env`. It's already in `.gitignore`.
 
-### (Optional) Use real Gemini AI
+### (Optional) Use real OpenAI AI
 
-If you want real AI answers instead of the fake ones, edit `.env`:
+If you want real AI answers instead of the simulated ones, edit `.env`:
 
 ```
-AI_PROVIDER=gemini
-GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-2.5-flash
+AI_PROVIDER=openai
+OPENAI_API_KEY=your_key_here
+OPENAI_MODEL=gpt-5-mini
 ```
 
-Get a key from https://aistudio.google.com/app/apikey. Pick a current model
-name from the Gemini docs.
+Get a key from https://platform.openai.com/api-keys (billing must be enabled on
+your OpenAI account). Any current OpenAI chat model name works.
 
 ### (Optional) Password recovery without email
 

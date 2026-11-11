@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-// These are review topics, not measured backend stages. One Gemini request
+// These are review topics, not measured backend stages. One AI request
 // produces the complete assessment; no external research is performed.
 const MESSAGES = [
   "Generating your business-plan assessment...",
